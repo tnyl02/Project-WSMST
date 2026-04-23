@@ -1,0 +1,299 @@
+.navbar {
+  width: 100%;
+  height: 70px;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 1px solid #eeeeee; /* เส้นคั่นบางๆ ด้านล่าง */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar-container {
+  width: 90%;
+  max-width: 1200px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Logo Section */
+.logo-section {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: #000;
+}
+
+.divider {
+  width: 1px;
+  height: 30px;
+  background-color: #ccc;
+  margin-left: 20px;
+}
+
+/* Nav Menu */
+.nav-menu {
+  display: flex;
+  list-style: none;
+  gap: 30px;
+}
+
+.nav-menu a {
+  text-decoration: none;
+  color: #333;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-menu a:hover, .nav-menu a.active {
+  color: #000;
+  border-bottom: 2px solid #000; /* ขีดเส้นใต้เมื่อ Active ตามแบบ */
+  padding-bottom: 5px;
+}
+
+/* Auth Section */
+.auth-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.btn-login {
+  text-decoration: none;
+  color: #333;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.btn-signup {
+  text-decoration: none;
+  color: #333;
+  padding: 8px 18px;
+  border: 1px solid #333;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-signup:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+
+
+.btn-logout {
+  background: none;
+  border: 1px solid #eee;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #ef4444; /* สีแดงสำหรับ Logout */
+}
+
+.btn-logout:hover {
+  background-color: #fff5f5;
+}
+
+.profile-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.status-badge {
+  background-color: #e0e0e0;
+  padding: 5px 20px;
+  border-radius: 20px;
+  font-family: monospace;
+  font-size: 0.9rem; /* ปรับขนาดให้พอดีกับชื่อ */
+  font-weight: bold;
+}
+
+.profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  background-color: #d1d1d1; /* สีเทาตามรูป */
+  color: #333;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+
+.user-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #000;
+}
+
+.user-name small {
+  font-size: 0.7rem;
+  vertical-align: middle;
+  margin-left: 5px;
+  color: #666;
+}
+
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  background-color: #d1d1d1;
+  color: #000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.profile-container {
+  position: relative; /* สำคัญมากเพื่อให้ Dropdown อ้างอิงตำแหน่งได้ */
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Badge 'free' */
+.status-badge {
+  background-color: #e0e0e0;
+  padding: 5px 25px;
+  border-radius: 20px;
+  font-family: monospace;
+  font-size: 1.1rem;
+  color: #000;
+}
+
+/* ตัวกดเปิดเมนู */
+.profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.user-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #000;
+}
+
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  background-color: #d1d1d1;
+  color: #000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* กล่อง Dropdown */
+.profile-dropdown {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  min-width: 160px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  border-radius: 4px; /* เพิ่มความมนให้กล่องเมนู */
+  overflow: hidden;    /* สำคัญ! เพื่อให้สี Hover ไม่ล้นขอบมนออกมา */
+}
+
+.dropdown-item {
+  padding: 12px 15px;
+  text-decoration: none;
+  color: #333;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: #000000; /* สีดำตามที่คุณต้องการ */
+  color: #ffffff;           /* เปลี่ยนตัวหนังสือเป็นสีขาวเพื่อให้มองเห็น */
+}
+
+.dropdown-item.logout {
+  border-top: 1px solid #eee; /* เส้นคั่นก่อน Sign out */
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.dropdown-item .icon {
+  font-size: 1.2rem;
+}
+
+.auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* เพิ่มช่องว่างระหว่างปุ่ม (ปรับตัวเลขได้ตามชอบ) */
+}
+
+.btn-login {
+  text-decoration: none;
+  color: #333;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-right: 5px; /* กันเหนียว เพิ่มระยะขวาอีกนิด */
+}
+
+.btn-signup {
+  text-decoration: none;
+  color: #333;
+  padding: 8px 18px;
+  border: 1px solid #333;
+  border-radius: 8px; /* ปรับความมนให้ใกล้เคียงรูปภาพ */
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: inline-block;
+}
+
+.btn-signup:hover {
+  background-color: #000;
+  color: #fff;
+}

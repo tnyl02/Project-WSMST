@@ -1,0 +1,59 @@
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  background-color: #ffffff; /* สีพื้นหลังอ่อนๆ ตามรูป */
+  border-right: 1px solid #f4f4f4;
+  height: calc(100vh - 70px);
+  position: sticky;
+  top: 70px;
+  padding: 20px 0;
+  font-family: sans-serif;
+}
+
+.sidebar-group {
+  margin-bottom: 25px;
+}
+
+.group-title {
+  padding: 0 25px;
+  font-size: 14px;
+  color: #000;
+  font-weight: bold;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 25px;
+  cursor: pointer;
+  color: #333;
+  transition: background-color 0.2s ease; /* ทำให้สีค่อยๆ เปลี่ยน ดูลื่นไหล */
+  border-radius: 4px; /* เพิ่มความมนเล็กน้อยให้ดูทันสมัย */
+  margin: 0 10px; /* เว้นระยะจากขอบซ้ายขวาเล็กน้อยเพื่อให้เห็นสี Hover ชัดเจน */
+}
+
+.sidebar-item.active {
+  background-color: #000000; /* สีเทาที่เข้มกว่า hover นิดนึงเพื่อให้เห็นความต่าง */
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.sidebar-item:hover {
+  background-color: #000000; /* สีเทาอ่อน (สีเดียวกับตอน Active ในรูปคุณ) */
+  color: #ffffff; /* เปลี่ยนตัวหนังสือให้เข้มขึ้นเล็กน้อย */
+}
+
+.sidebar-icon {
+  width: 24px;
+  margin-right: 12px;
+  display: flex;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.sidebar-text {
+  font-size: 16px;
+  font-weight: 400;
+}

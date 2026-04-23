@@ -1,0 +1,118 @@
+.dashboard-layout {
+  display: flex;
+  min-height: calc(100vh - 70px);
+  background-color: #f8f9fa;
+}
+
+
+/* Main Area */
+.dashboard-main {
+  flex: 1;
+  padding: 40px;
+}
+
+.dashboard-header {
+  margin-bottom: 30px;
+}
+
+.dashboard-header h2 {
+  font-size: 1.8rem;
+  margin-bottom: 5px;
+}
+
+/* Stats Cards */
+.stats-grid {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  flex: 1;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  border: 1px solid #eee;
+}
+
+.stat-label {
+  color: #888;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.stat-value-group {
+  margin: 15px 0;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.stat-unit {
+  margin-left: 5px;
+  color: #aaa;
+  font-size: 0.9rem;
+}
+
+.stat-progress-bg {
+  height: 6px;
+  background-color: #eee;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.stat-progress-bar {
+  height: 100%;
+  border-radius: 10px;
+}
+
+/* API Key Box */
+.api-key-section {
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+}
+
+.api-key-box {
+  background-color: #f1f5f9;
+  padding: 15px 20px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 15px 0;
+}
+
+.api-key-text {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 600;
+  color: #334155;
+}
+
+.api-key-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-reveal, .btn-copy {
+  padding: 8px 15px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-reveal:hover, .btn-copy:hover {
+  background-color: #f8fafc;
+}
+
+.api-hint {
+  font-size: 0.85rem;
+  color: #ef4444;
+}
