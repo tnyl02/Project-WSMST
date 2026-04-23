@@ -46,11 +46,12 @@
 .main-layout {
   display: flex; /* ทำให้ Sidebar กับ Content เรียงซ้ายขวา */
   flex: 1;       /* ยืดความสูงให้เต็มที่ที่เหลือจาก Navbar */
+  align-items: flex-start;
 }
 
 .content-area {
   flex: 1;       /* ให้เนื้อหาหลักกินพื้นที่ที่เหลือทั้งหมด */
   padding: 20px;
   background-color: #f8f9fa;
-  overflow-y: auto; /* ให้เลื่อนขึ้นลงได้เฉพาะส่วนเนื้อหา */
+
 }
