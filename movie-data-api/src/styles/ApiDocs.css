@@ -12,6 +12,16 @@ body {
   line-height: 1.6;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 90px;
+}
+
+:root {
+  --docs-navbar-height: 70px;
+  --docs-scroll-offset: 90px;
+}
+
 /* ===== Layout ===== */
 .layout {
   display: flex;
@@ -27,8 +37,8 @@ body {
   border-right: 1px solid #e5e7eb;
   padding: 24px 16px;
   position: sticky;
-  top: 60px; /* ← เปลี่ยนตรงนี้ให้เท่ากับความสูง Navbar */
-  height: calc(100vh - 60px); /* ← ปรับตามความสูง Navbar */
+  top: var(--docs-navbar-height); /* ← เปลี่ยนตรงนี้ให้เท่ากับความสูง Navbar */
+  height: calc(100vh - var(--docs-navbar-height)); /* ← ปรับตามความสูง Navbar */
   overflow-y: auto;
   align-self: flex-start;
 }
@@ -80,6 +90,7 @@ body {
 /* ===== Section ===== */
 .doc-section {
   margin-bottom: 56px;
+  scroll-margin-top: var(--docs-scroll-offset);
 }
 
 .section-h1 {
