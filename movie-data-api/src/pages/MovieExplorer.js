@@ -1,6 +1,5 @@
 
 // src/pages/MovieExplorer.js (ทำแบบเดียวกันกับหน้าอื่นๆ)
-import React from 'react';
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "../styles/MovieExplorer.css";
