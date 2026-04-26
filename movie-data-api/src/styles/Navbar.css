@@ -126,6 +126,7 @@
   border-radius: 20px;
   font-family: monospace;
   font-size: 0.9rem; /* ปรับขนาดให้พอดีกับชื่อ */
+  flex-shrink: 0; 
   font-weight: bold;
 }
 
@@ -176,20 +177,22 @@
 }
 
 .profile-container {
-  position: relative; /* สำคัญมากเพื่อให้ Dropdown อ้างอิงตำแหน่งได้ */
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 8px;
+  flex-shrink: 0;    /* ← ไม่ให้เมนูขยับ */
+  white-space: nowrap;
 }
 
 /* Badge 'free' */
 .status-badge {
-  background-color: #e0e0e0;
-  padding: 5px 25px;
+  font-size: 11px;
+  padding: 2px 8px;
   border-radius: 20px;
-  font-family: monospace;
-  font-size: 1.1rem;
-  color: #000;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;    /* ← ไม่ให้หด */
+  line-height: 1.4;
 }
 
 /* ตัวกดเปิดเมนู */
@@ -296,4 +299,20 @@
 .btn-signup:hover {
   background-color: #000;
   color: #fff;
+}
+
+/* .badge-starter   { background: #f3f3f3; color: #555; border: 1px solid #ddd; }
+.badge-developer { background: #e8f0fe; color: #1a56db; border: 1px solid #c3d3fd; }
+.badge-enterprise{ background: #fef3e8; color: #b45309; border: 1px solid #fcd9a0; } */
+
+.admin-badge {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  background: #EEEDFE;
+  color: #3C3489;
+  padding: 3px 8px;
+  border-radius: 20px;
+  margin-left: 8px;
 }

@@ -1,19 +1,30 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import '../../styles/Navbar.css';
 
-const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
+const Navbar = ({ isLoggedIn, setIsLoggedIn, currentPlan }) => {
+  const navigate = useNavigate(); // ← เพิ่ม useNavigate เพื่อใช้ในการเปลี่ยนหน้า
+  // map plan → label
+  const planLabel = {
+    starter: 'free',
+    developer: 'medium',
+    enterprise: 'premium',
+  };
   const location = useLocation();
   const [showDropdown, setShowDropdown] = useState(false);
+
 
   return (
     <nav className="navbar">
       <div className="navbar-container">
         {/* ส่วน Logo */}
         <div className="logo-section">
-          <Link to="/" className="logo">LOGO</Link>
-          <div className="divider"></div>
-        </div>
+  <Link to="/" className="logo">LOGO</Link>
+  {localStorage.getItem('role') === 'admin' && (
+    <span className="admin-badge">Admin</span>
+  )}
+  <div className="divider"></div>
+</div>
 
         {/* ส่วนเมนูตรงกลาง */}
         <ul className="nav-menu">
@@ -38,15 +49,17 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
           {isLoggedIn ? (
             <div className="profile-container">
               {/* Badge สถานะ Free */}
-              <div className="status-badge">free</div>
+              <div className={`status-badge badge-${currentPlan}`}>
+                {planLabel[currentPlan] || 'free'}
+              </div>
 
               {/* ส่วนที่กดแล้วจะเปิด Dropdown */}
-              <div 
-                className="profile-trigger" 
+              <div
+                className="profile-trigger"
                 onClick={() => setShowDropdown(!showDropdown)}
               >
                 {/* สลับชื่อไว้หน้า รูปไว้หลัง ตามรูปที่คุณส่งมา */}
-                
+
                 <div className="user-avatar">NK</div>
                 <span className="user-name">Narun K. <small>∨</small></span>
               </div>
@@ -57,11 +70,13 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
                   <Link to="/profile" className="dropdown-item" onClick={() => setShowDropdown(false)}>
                     <span className="icon">○</span> My profile
                   </Link>
-                  <button 
-                    className="dropdown-item logout" 
+                  <button
+                    className="dropdown-item logout"
                     onClick={() => {
                       setIsLoggedIn(false);
+                      localStorage.removeItem('isLoggedIn');
                       setShowDropdown(false);
+                      navigate('/'); // ← เพิ่ม redirect ไปหน้า Home
                     }}
                   >
                     Sign out
