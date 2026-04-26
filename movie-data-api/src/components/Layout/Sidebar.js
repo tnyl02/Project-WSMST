@@ -1,26 +1,20 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import '../../styles/Sidebar.css'; // อย่าลืมสร้างไฟล์ CSS สำหรับ Sidebar ด้วยนะครับ
+import '../../styles/Sidebar.css';
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const role = localStorage.getItem('role'); // ← ดึง role
 
-  // สร้างโครงสร้างเมนูแบบแบ่งกลุ่ม
-  const menuGroups = [
+  // เมนูสำหรับ Admin
+  const adminMenuGroups = [
     {
       title: 'MAIN',
       items: [
-        { name: 'Dashboard', path: '/dashboard', icon: '⬡' }, // เว้นที่ไว้ใส่ไอคอน
-        { name: 'API management', path: '/api-management', icon: '◇' },
-        { name: 'Usage logs', path: '/logs', icon: '≡' }
-      ]
-    },
-    {
-      title: 'Resources',
-      items: [
-        { name: 'Documentation', path: '/docs', icon: '⊞' },
-        { name: 'Subscription', path: '/subscription', icon: '◈' }
+        { name: 'Dashboard',        path: '/admin/dashboard',        icon: '⬡' },
+        { name: 'User management',  path: '/admin/user-management',  icon: '◇' },
+        { name: 'Movie management', path: '/admin/movie-management', icon: '≡' }
       ]
     },
     {
@@ -31,8 +25,38 @@ const Sidebar = () => {
     }
   ];
 
+  // เมนูสำหรับ User ทั่วไป (เหมือนเดิม)
+  const userMenuGroups = [
+    {
+      title: 'MAIN',
+      items: [
+        { name: 'Dashboard',      path: '/dashboard',      icon: '⬡' },
+        { name: 'API management', path: '/api-management', icon: '◇' },
+        { name: 'Usage logs',     path: '/logs',           icon: '≡' }
+      ]
+    },
+    {
+      title: 'Resources',
+      items: [
+        { name: 'Documentation', path: '/docs',         icon: '⊞' },
+        { name: 'Subscription',  path: '/subscription', icon: '◈' }
+      ]
+    },
+    {
+      title: 'ACCOUNT',
+      items: [
+        { name: 'My profile', path: '/profile', icon: '○' }
+      ]
+    }
+  ];
+
+  // เลือกเมนูตาม role
+  const menuGroups = role === 'admin' ? adminMenuGroups : userMenuGroups;
+
   return (
-    <aside className="sidebar">
+    <aside className="app-sidebar">
+    
+
       <nav className="sidebar-nav">
         {menuGroups.map((group, gIndex) => (
           <div key={gIndex} className="sidebar-group">

@@ -1,0 +1,254 @@
+.usage-logs-container {
+  padding: 32px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 4px;
+}
+
+.page-sub {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 24px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.search-wrap {
+  flex: 1;
+  position: relative;
+}
+
+.search-wrap input {
+  width: 100%;
+  padding: 8px 12px 8px 36px;
+  font-size: 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  outline: none;
+  background: white;
+  color: #111;
+}
+
+.search-wrap input:focus {
+  border-color: #bbb;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: #aaa;
+  pointer-events: none;
+}
+
+.toolbar select {
+  padding: 8px 32px 8px 12px;
+  font-size: 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  color: #111;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.table-wrap {
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: white;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+thead {
+  background: #fafafa;
+}
+
+thead th {
+  padding: 12px 20px;
+  text-align: left;
+  font-weight: 500;
+  font-size: 13px;
+  color: #888;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+tbody tr {
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.1s;
+}
+
+tbody tr:last-child {
+  border-bottom: none;
+}
+
+tbody tr:hover {
+  background: #fafafa;
+}
+
+tbody td {
+  padding: 12px 20px;
+  color: #111;
+}
+
+.method-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  min-width: 56px;
+  text-align: center;
+}
+
+.method-GET    { background: #E6F1FB; color: #0C447C; }
+.method-POST   { background: #EAF3DE; color: #27500A; }
+.method-DELETE { background: #FCEBEB; color: #791F1F; }
+.method-PUT    { background: #FAEEDA; color: #633806; }
+
+.status-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  min-width: 44px;
+  text-align: center;
+}
+
+.status-2xx { background: #EAF3DE; color: #27500A; }
+.status-4xx { background: #FCEBEB; color: #791F1F; }
+.status-5xx { background: #FAEEDA; color: #633806; }
+
+.endpoint {
+  font-family: monospace;
+  font-size: 13px;
+  color: #555;
+}
+
+.timestamp {
+  font-size: 13px;
+  color: #888;
+}
+
+.state-msg {
+  padding: 48px;
+  text-align: center;
+  font-size: 14px;
+  color: #aaa;
+}
+
+.state-msg.error {
+  color: #e53935;
+}
+
+.footer {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #aaa;
+  text-align: right;
+}
+
+.custom-dropdown {
+  position: relative;
+}
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  color: #111;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s;
+}
+
+.dropdown-trigger:hover {
+  border-color: #bbb;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  z-index: 100;
+  min-width: 160px;
+  overflow: hidden;
+  padding: 4px;
+}
+
+.dropdown-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  text-align: left;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.dropdown-option:hover {
+  background: #f5f5f5;
+}
+
+.dropdown-option.active {
+  color: #111;
+  font-weight: 500;
+}
+
+.dropdown-option .check {
+  margin-left: auto;
+  color: #111;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-2xx { background: #639922; }
+.dot-4xx { background: #E24B4A; }
+.dot-5xx { background: #BA7517; }
+.dot-GET    { background: #185FA5; }
+.dot-POST   { background: #3B6D11; }
+.dot-DELETE { background: #A32D2D; }
+.dot-PUT    { background: #854F0B; }

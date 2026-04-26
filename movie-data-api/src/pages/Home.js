@@ -1,3 +1,4 @@
+// src/pages/Home.js (ทำแบบเดียวกันกับหน้าอื่นๆ)
 import React from 'react';
 import '../styles/Home.css';
 import { Link } from "react-router-dom";

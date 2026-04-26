@@ -1,3 +1,6 @@
+
+// src/pages/ApiDocs.js (ทำแบบเดียวกันกับหน้าอื่นๆ)
+import React from 'react';
 import React, { useState } from "react";
 import '../styles/ApiDocs.css';
 
@@ -12,6 +15,7 @@ const CodeBlock = ({ code, language = "bash" }) => {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
 
   return (
     <div className="code-block">

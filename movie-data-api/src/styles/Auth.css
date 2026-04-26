@@ -95,3 +95,27 @@
 .arrow {
   font-size: 1.2rem;
 }
+
+/* App.css */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-layout {
+  display: flex; /* ทำให้ Sidebar กับ Content เรียงซ้ายขวา */
+  flex: 1;
+}
+
+.content-area {
+  flex: 1; /* กินพื้นที่ที่เหลือทางขวาทั้งหมด */
+  padding: 20px;
+  background-color: #f5f7fb;
+  transition: all 0.3s ease;
+}
+
+/* กรณีไม่ได้ Login ให้ Content ขยายเต็มจอ */
+.content-area.full-width {
+  padding: 0; /* หรือปรับตามดีไซน์หน้า Home/Login */
+}
