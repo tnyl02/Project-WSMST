@@ -1,27 +1,21 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import './styles/UserManagement.css';
 
-
-// ===== Mock Data =====
-const MOCK_USERS = [
-  { id: 1, username: "JohnDoe",    apiKey: "mov_a1b2c3", plan: "Premium", requests: 1240, status: "Active" },
-  { id: 2, username: "FilmMaster", apiKey: "mov_d4e5f6", plan: "Premium", requests: 980,  status: "Active" },
-  { id: 3, username: "CineFan99",  apiKey: "mov_g7h8i9", plan: "Medium",  requests: 300,  status: "Active" },
-  { id: 4, username: "MovieBuff",  apiKey: "mov_j1k2l3", plan: "Medium",  requests: 250,  status: "Active" },
-  { id: 5, username: "TestUser",   apiKey: "mov_m4n5o6", plan: "Free",    requests: 100,  status: "Limit"  },
-];
-
-const PLAN_OPTIONS   = ["Premium", "Medium", "Free"];
-const STATUS_OPTIONS = ["Active", "Limit", "Block"];
+const PLAN_OPTIONS   = ["premium", "medium", "free"];
+const STATUS_OPTIONS = ["active", "limit", "block"];
 
 // ===== Plan Badge =====
 const PlanBadge = ({ plan }) => (
-  <span className={`plan-badge plan-${plan.toLowerCase()}`}>{plan}</span>
+  <span className={`plan-badge plan-${plan?.toLowerCase()}`}>
+    {plan?.charAt(0).toUpperCase() + plan?.slice(1)}
+  </span>
 );
 
 // ===== Status Badge =====
 const StatusBadge = ({ status }) => (
-  <span className={`status-badge status-${status.toLowerCase()}`}>{status}</span>
+  <span className={`status-badge status-${status?.toLowerCase()}`}>
+    {status?.charAt(0).toUpperCase() + status?.slice(1)}
+  </span>
 );
 
 // ===== Action Dropdown =====
@@ -29,7 +23,6 @@ const ActionDropdown = ({ userId, currentPlan, currentStatus, onUpdate }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
-  // Click outside → close
   useEffect(() => {
     const handler = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
@@ -51,10 +44,10 @@ const ActionDropdown = ({ userId, currentPlan, currentStatus, onUpdate }) => {
           {PLAN_OPTIONS.map((p) => (
             <button
               key={p}
-              className={`dropdown-item ${currentPlan === p ? "active" : ""}`}
+              className={`dropdown-item ${currentPlan?.toLowerCase() === p ? "active" : ""}`}
               onClick={() => { onUpdate(userId, "plan", p); setOpen(false); }}
             >
-              {p}
+              {p.charAt(0).toUpperCase() + p.slice(1)}
             </button>
           ))}
 
@@ -65,10 +58,10 @@ const ActionDropdown = ({ userId, currentPlan, currentStatus, onUpdate }) => {
           {STATUS_OPTIONS.map((s) => (
             <button
               key={s}
-              className={`dropdown-item ${currentStatus === s ? "active" : ""}`}
+              className={`dropdown-item ${currentStatus?.toLowerCase() === s ? "active" : ""}`}
               onClick={() => { onUpdate(userId, "status", s); setOpen(false); }}
             >
-              {s}
+              {s.charAt(0).toUpperCase() + s.slice(1)}
             </button>
           ))}
         </div>
@@ -79,22 +72,99 @@ const ActionDropdown = ({ userId, currentPlan, currentStatus, onUpdate }) => {
 
 // ===== Main =====
 export default function UsersManagement() {
-  const [users, setUsers]   = useState(MOCK_USERS);
-  const [search, setSearch] = useState("");
+  const [users, setUsers]     = useState([]);
+  const [search, setSearch]   = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState(null);
+  const [successMsg, setSuccessMsg] = useState("");
 
-  // Filter
-  const filtered = users.filter((u) =>
-    u.username.toLowerCase().includes(search.toLowerCase()) ||
-    u.apiKey.toLowerCase().includes(search.toLowerCase())
-  );
+  // ดึง Token จาก localStorage
+  const getToken = () => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      const user = JSON.parse(userData);
+      return user.token || null;
+    }
+    return null;
+  };
 
-  // Update plan / status
-  const handleUpdate = (userId, field, value) => {
+  // ===== Fetch Users =====
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const token = getToken();
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/admin/users`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch users: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setUsers(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // ===== Update Plan / Status =====
+  const handleUpdate = async (userId, field, value) => {
+    // Optimistic update (อัปเดต UI ก่อน)
     setUsers((prev) =>
       prev.map((u) => (u.id === userId ? { ...u, [field]: value } : u))
     );
+
+    try {
+      const token = getToken();
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/admin/users/${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ [field]: value }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to update: ${response.status}`);
+      }
+
+      // แสดง Success Message
+      setSuccessMsg(`Updated ${field} successfully!`);
+      setTimeout(() => setSuccessMsg(""), 3000);
+
+    } catch (err) {
+      // Rollback ถ้า error
+      setError(err.message);
+      fetchUsers();
+    }
   };
 
+  // ===== Filter =====
+  const filtered = users.filter((u) =>
+    u.username?.toLowerCase().includes(search.toLowerCase()) ||
+    u.api_key?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // ===== Render =====
   return (
     <div className="um-wrapper">
 
@@ -102,13 +172,12 @@ export default function UsersManagement() {
       <div className="um-header">
         <h1 className="um-title">Users Management</h1>
 
-        {/* Search */}
         <div className="um-search-box">
           <span className="um-search-icon-left">☰</span>
           <input
             className="um-search-input"
             type="text"
-            placeholder="Hinted search text"
+            placeholder="Search by username or API key..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -116,48 +185,71 @@ export default function UsersManagement() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="um-table-wrapper">
-        <table className="um-table">
-          <thead>
-            <tr>
-              <th>User Name</th>
-              <th>API Key</th>
-              <th>Plan</th>
-              <th>Requests</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length > 0 ? (
-              filtered.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.username}</td>
-                  <td>
-                    <span className="apikey-text">{user.apiKey}</span>
-                  </td>
-                  <td><PlanBadge plan={user.plan} /></td>
-                  <td>{user.requests.toLocaleString()}</td>
-                  <td><StatusBadge status={user.status} /></td>
-                  <td>
-                    <ActionDropdown
-                      userId={user.id}
-                      currentPlan={user.plan}
-                      currentStatus={user.status}
-                      onUpdate={handleUpdate}
-                    />
+      {/* Success Message */}
+      {successMsg && (
+        <div className="um-success-msg">
+          ✅ {successMsg}
+        </div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div className="um-error-msg">
+          ❌ {error}
+          <button onClick={fetchUsers}>Retry</button>
+        </div>
+      )}
+
+      {/* Loading */}
+      {loading ? (
+        <div className="um-loading">Loading users...</div>
+      ) : (
+        <div className="um-table-wrapper">
+          <table className="um-table">
+            <thead>
+              <tr>
+                <th>User Name</th>
+                <th>API Key</th>
+                <th>Plan</th>
+                <th>Requests</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length > 0 ? (
+                filtered.map((user) => (
+                  <tr key={user.id}>
+                    <td>{user.username}</td>
+                    <td>
+                      <span className="apikey-text">
+                        {user.api_key || "—"}
+                      </span>
+                    </td>
+                    <td><PlanBadge plan={user.subscription} /></td>
+                    <td>{user.total_requests?.toLocaleString() ?? 0}</td>
+                    <td><StatusBadge status={user.status} /></td>
+                    <td>
+                      <ActionDropdown
+                        userId={user.id}
+                        currentPlan={user.subscription}
+                        currentStatus={user.status}
+                        onUpdate={handleUpdate}
+                      />
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="um-empty">
+                    No users found
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={6} className="um-empty">No users found</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
     </div>
   );
