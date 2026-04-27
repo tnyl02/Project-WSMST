@@ -1,84 +1,87 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import KeyItem from './KeyItem';
 
-// โหลด keys จาก localStorage ครั้งแรก
-const loadKeys = () => {
-  try {
-    const saved = localStorage.getItem('apiKeys');
-    return saved ? JSON.parse(saved) : [
-      // Default key ถ้ายังไม่มีใน localStorage
-      {
-        id: 1,
-        name: 'Production Key',
-        key: 'mov_7x89b2k3l4m5n6o7p8q9r0',
-        created: 'Dec 15, 2025',
-        lastUsed: '2 hours ago',
-      }
-    ];
-  } catch {
-    return [];
-  }
-};
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
+// ApiKeyBox — widget เล็กสำหรับใช้ใน Dashboard
 const ApiKeyBox = () => {
-  const [keys, setKeys] = useState(() => {
-    // ใช้ arrow function แทน loadKeys reference
-    try {
-      const saved = localStorage.getItem('apiKeys');
-      console.log('Loaded from storage:', saved); // ← ดู console
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error('localStorage error:', e);
-    }
-    return [{
-      id: 1,
-      name: 'Production Key',
-      key: 'mov_7x89b2k3l4m5n6o7p8q9r0',
-      created: 'Dec 15, 2025',
-      lastUsed: '2 hours ago',
-    }];
-  });
+  const [keyData, setKeyData] = useState(null);
+  const [show, setShow]       = useState(false);
 
   useEffect(() => {
-  if (keys.length > 0) { // ← เซฟเฉพาะตอนมีข้อมูล
-    localStorage.setItem('apiKeys', JSON.stringify(keys));
-  }
-}, [keys]);
-  const handleDelete = (id) => {
-    setKeys(prev => prev.filter(k => k.id !== id));
-    toast.success("Deleted key successfully");
+    const fetchKey = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/api/key/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        setKeyData(data);
+      } catch {
+        // ไม่แสดง error ใน widget เล็ก — fail silently
+        console.error('ApiKeyBox: failed to fetch key');
+      }
+    };
+
+    fetchKey();
+  }, []);
+
+  const handleCopy = async () => {
+    if (!keyData?.api_key) return;
+    try {
+      await navigator.clipboard.writeText(keyData.api_key);
+      toast.success('Copied to clipboard!');
+    } catch {
+      toast.error('Copy ไม่สำเร็จ');
+    }
   };
 
-  const handleAddKey = () => {
-    const newKey = {
-      id: Date.now(),
-      name: `Key #${keys.length + 1}`,
-      key: 'mov_' + Math.random().toString(36).slice(2, 18),
-      created: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      lastUsed: 'Never',
-    };
-    setKeys(prev => [...prev, newKey]);
-    toast.success("New API key created!");
-  };
+  const isRevoked = keyData?.status !== 'Active';
 
   return (
     <div className="api-key-section">
       <div className="key-header">
-        <strong>Your API Keys</strong>
-        <button className="btn-outline" onClick={handleAddKey}>
-          + New Key
-        </button>
+        <strong>Your API Key</strong>
       </div>
 
-      {keys.length === 0 ? (
+      {!keyData ? (
         <p style={{ color: '#aaa', fontSize: '14px', marginTop: '12px' }}>
-          No API keys yet. Click "+ New Key" to create one.
+          กำลังโหลด...
         </p>
       ) : (
-        keys.map(k => (
-          <KeyItem key={k.id} keyData={k} onDelete={handleDelete} />
-        ))
+        <div className="key-card-item">
+          <div className="key-info-left">
+            <span className="key-label">
+              API Key
+              <span style={{
+                marginLeft: 8,
+                fontSize: 12,
+                color: isRevoked ? '#e74c3c' : '#27ae60',
+                fontWeight: 500,
+              }}>
+                ● {keyData.status}
+              </span>
+            </span>
+            <div className="key-value-row">
+              <span className="key-string">
+                {show ? keyData.api_key : 'mov_••••••••••••••••'}
+              </span>
+            </div>
+            <span className="key-timestamp">
+              Retrieved at {keyData.retrieved_at}
+            </span>
+          </div>
+
+          <div className="key-actions-right">
+            <button className="btn-outline" onClick={() => setShow(!show)}>
+              {show ? 'Hide' : 'Reveal'}
+            </button>
+            <button className="btn-outline" onClick={handleCopy} disabled={isRevoked}>
+              Copy
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

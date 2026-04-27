@@ -26,23 +26,23 @@ const MOCK_DATA = {
     { label: 'Sun', value: 1240 },
   ],
   rateLimits: [
-    { label: 'Per minute',  used: 45,  max: 60  },
-    { label: 'Per hour',    used: 820, max: 1000 },
-    { label: 'Per day',     used: 1240,max: 5000 },
+    { label: 'Per minute', used: 45, max: 60 },
+    { label: 'Per hour', used: 820, max: 1000 },
+    { label: 'Per day', used: 1240, max: 5000 },
   ],
   endpointBreakdown: [
-    { label: '/movies',        value: 60 },
-    { label: '/movies/:id',    value: 28 },
-    { label: '/search',        value: 12 },
+    { label: '/movies', value: 60 },
+    { label: '/movies/:id', value: 28 },
+    { label: '/search', value: 12 },
   ],
 };
 
-const USE_MOCK = true; // ← เปลี่ยนเป็น false เมื่อ Backend พร้อม
+const USE_MOCK = false; // ← เปลี่ยนเป็น false เมื่อ Backend พร้อม
 
 const Dashboard = () => {
-  const [data, setData]       = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,19 +50,28 @@ const Dashboard = () => {
         setLoading(true);
         setError(null);
 
-        if (USE_MOCK) {
-          // จำลอง delay เหมือน API จริง
-          await new Promise(r => setTimeout(r, 600));
-          setData(MOCK_DATA);
-        } else {
-          const res = await fetch('/api/dashboard');
-          if (!res.ok) throw new Error(`Error ${res.status}`);
-          const json = await res.json();
-          setData(json);
+        const token = localStorage.getItem('token'); // ดึง token มาจากตอน login
+
+        // เรียกไปที่ /api/dashboard/stats (ผ่าน Proxy ที่เราตั้งไว้)
+        const res = await fetch('/api/dashboard/stats', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // ส่ง Token ไปให้ Middleware ของ Go ตรวจสอบ
+          }
+        });
+
+        if (!res.ok) {
+          // ถ้า res.status เป็น 401 แปลว่า Token หมดอายุหรือไม่มีสิทธิ์
+          throw new Error(`Error ${res.status}: ${res.statusText}`);
         }
+
+        const json = await res.json();
+        console.log("Data from Backend:", json); // ส่องดูชื่อตัวแปรในนี้เลย!
+        setData(json);
       } catch (err) {
-        console.error(err);
-        setError('ไม่สามารถเชื่อมต่อ Backend ได้');
+        console.error("Dashboard Fetch Error:", err);
+        setError('ไม่สามารถเชื่อมต่อ Backend ได้ หรือสิทธิ์การเข้าถึงหมดอายุ');
       } finally {
         setLoading(false);
       }
@@ -99,22 +108,25 @@ const Dashboard = () => {
       <div className="stats-grid">
         <StatCard
           title="Requests today"
-          value={data.requestsToday.toLocaleString()}
-          subValue={`↑ ${data.growth}% from yesterday`}
+          // เปลี่ยนจาก requestsToday เป็น today_usage
+          value={(data?.today_usage ?? 0).toLocaleString()}
+          subValue={`↑ ${data?.growth ?? 0}% from yesterday`}
         />
         <StatCard
           title="Quota used"
-          value={`${data.quotaUsed.toLocaleString()} / ${data.quotaMax.toLocaleString()}`}
-          subValue={data.planName}
+          // โครงสร้างใหม่ไม่มี quotaMax มาให้ ต้องเช็คดีๆ นะครับ
+          value={`${(data?.today_usage ?? 0).toLocaleString()} / 5000`}
+          subValue={data?.planName ?? 'Standard Plan'}
         />
         <StatCard
           title="Active API key"
-          value={data.activeKeys}
-          subValue={data.latestKey}
+          value={data?.activeKeys ?? 1}
+          subValue={data?.latestKey ?? 'Active'}
         />
         <StatCard
           title="Error 429 today"
-          value={data.errorsToday}
+          // เปลี่ยนจาก errorsToday เป็น today_errors
+          value={data?.today_errors ?? 0}
           subValue="System Status: Ready"
         />
       </div>

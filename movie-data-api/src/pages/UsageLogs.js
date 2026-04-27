@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/UsageLogs.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+
 const getStatusClass = (s) => {
-  if (s >= 500) return "status-5xx";
-  if (s >= 400) return "status-4xx";
-  return "status-2xx";
+  if (s >= 500) return 'status-5xx';
+  if (s >= 400) return 'status-4xx';
+  return 'status-2xx';
 };
 
 const Dropdown = ({ value, onChange, options }) => {
@@ -53,28 +55,47 @@ const Dropdown = ({ value, onChange, options }) => {
 };
 
 const UsageLogs = () => {
-  const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [search, setSearch] = useState('');
+  const [logs, setLogs]               = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState(null);
+  const [search, setSearch]           = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [methodFilter, setMethodFilter] = useState('ALL');
 
   useEffect(() => {
-    const mockData = [
-      { time: "14:32:08", method: "GET",    endpoint: "/v1/movies/search",      status: 200 },
-      { time: "14:31:55", method: "GET",    endpoint: "/v1/movies/tt1375666",    status: 200 },
-      { time: "14:31:42", method: "POST",   endpoint: "/v1/movies/ratings",      status: 201 },
-      { time: "14:30:18", method: "GET",    endpoint: "/v1/movies/search",       status: 429 },
-      { time: "14:29:44", method: "DELETE", endpoint: "/v1/movies/watchlist/42", status: 204 },
-      { time: "14:28:10", method: "POST",   endpoint: "/v1/movies/watchlist",    status: 201 },
-      { time: "14:27:33", method: "GET",    endpoint: "/v1/movies/tt0111161",    status: 200 },
-      { time: "14:26:50", method: "PUT",    endpoint: "/v1/movies/ratings/7",    status: 200 },
-      { time: "14:25:12", method: "GET",    endpoint: "/v1/movies/trending",     status: 200 },
-      { time: "14:24:05", method: "DELETE", endpoint: "/v1/movies/watchlist/38", status: 404 },
-    ];
-    setLogs(mockData);
-    setLoading(false);
+    const fetchLogs = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/api/logs`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error(`Error ${res.status}`);
+
+        const data = await res.json();
+
+        // backend ส่ง { logs: [{ time, endpoint, status_code }] }
+        // normalize ให้ตรงกับที่ UI ใช้ (status_code → status)
+        const normalized = (data.logs || []).map(l => ({
+          time:     l.time,
+          endpoint: l.endpoint,
+          status:   l.status_code,
+          method:   'GET', // backend ยังไม่ส่ง method มา — default ไว้ก่อน
+        }));
+
+        setLogs(normalized);
+      } catch (err) {
+        console.error('UsageLogs fetch error:', err);
+        setError('ไม่สามารถโหลด logs ได้');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLogs();
   }, []);
 
   const filtered = logs.filter((l) => {
@@ -111,10 +132,10 @@ const UsageLogs = () => {
           value={statusFilter}
           onChange={setStatusFilter}
           options={[
-            { value: 'ALL',  label: 'ALL status' },
-            { value: '2xx',  label: '2xx Success' },
-            { value: '4xx',  label: '4xx Client error' },
-            { value: '5xx',  label: '5xx Server error' },
+            { value: 'ALL', label: 'ALL status' },
+            { value: '2xx', label: '2xx Success' },
+            { value: '4xx', label: '4xx Client error' },
+            { value: '5xx', label: '5xx Server error' },
           ]}
         />
 

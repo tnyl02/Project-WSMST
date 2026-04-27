@@ -1,13 +1,20 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import '../styles/AdminDashboard.css';
-const topUsers = [
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+
+// TODO: ต้องเพิ่ม admin endpoint ใน backend ถึงจะดึงข้อมูลจริงได้
+// เช่น GET /api/admin/stats → { total_users, requests_today, top_users, plan_breakdown }
+const MOCK_TOP_USERS = [
   { rank: 1, name: 'JohnDoe',    key: 'mov_a1b2c3', plan: 'Premium', requests: 1240, status: 'Active' },
   { rank: 2, name: 'FilmMaster', key: 'mov_d4e5f6', plan: 'Premium', requests: 980,  status: 'Active' },
   { rank: 3, name: 'CineFan99',  key: 'mov_g7h8i9', plan: 'Medium',  requests: 300,  status: 'Active' },
   { rank: 4, name: 'MovieBuff',  key: 'mov_j1k2l3', plan: 'Medium',  requests: 250,  status: 'Active' },
   { rank: 5, name: 'TestUser',   key: 'mov_m4n5o6', plan: 'Free',    requests: 100,  status: 'Limit'  },
 ];
+
+const MOCK_PLAN_DATA = { Free: 60, Medium: 32, Premium: 8 };
 
 const planBadge   = { Premium: 'adm-badge-premium', Medium: 'adm-badge-medium', Free: 'adm-badge-free' };
 const statusBadge = { Active: 'adm-badge-active', Limit: 'adm-badge-limit' };
@@ -18,14 +25,45 @@ const AdminDashboard = () => {
   const lineChart  = useRef(null);
   const donutChart = useRef(null);
 
+  // ข้อมูลจริงจาก backend (/api/dashboard/stats)
+  const [stats, setStats] = useState(null);
+
   useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/api/dashboard/stats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error('fetch failed');
+        const data = await res.json();
+        setStats(data);
+      } catch (err) {
+        console.error('AdminDashboard fetch error:', err);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  // สร้าง chart เมื่อได้ stats จาก API แล้ว
+  useEffect(() => {
+    if (!stats) return;
+
+    // graph_data จาก backend: [{ date: "2026-04-20", count: 320 }, ...]
+    const graphLabels = stats.graph_data.map(d =>
+      new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    );
+    const graphValues = stats.graph_data.map(d => d.count);
+
+    lineChart.current?.destroy();
     lineChart.current = new Chart(lineRef.current, {
       type: 'line',
       data: {
-        labels: ['Apr 19','Apr 20','Apr 21','Apr 22','Apr 23','Apr 24','Apr 25'],
+        labels: graphLabels,
         datasets: [{
           label: 'Requests',
-          data: [9800, 10200, 11000, 9500, 13100, 11800, 12540],
+          data: graphValues,
           borderColor: '#378ADD',
           backgroundColor: 'rgba(55,138,221,0.08)',
           borderWidth: 2,
@@ -39,17 +77,19 @@ const AdminDashboard = () => {
         plugins: { legend: { display: false } },
         scales: {
           x: { ticks: { font: { size: 11 } } },
-          y: { ticks: { font: { size: 11 }, callback: v => (v/1000).toFixed(1)+'k' } }
+          y: { ticks: { font: { size: 11 }, callback: v => v >= 1000 ? (v/1000).toFixed(1)+'k' : v } }
         }
       }
     });
 
+    // donut ยังใช้ mock จนกว่าจะมี admin endpoint
+    donutChart.current?.destroy();
     donutChart.current = new Chart(donutRef.current, {
       type: 'doughnut',
       data: {
         labels: ['Free', 'Medium', 'Premium'],
         datasets: [{
-          data: [60, 32, 8],
+          data: [MOCK_PLAN_DATA.Free, MOCK_PLAN_DATA.Medium, MOCK_PLAN_DATA.Premium],
           backgroundColor: ['#888780', '#378ADD', '#534AB7'],
           borderWidth: 0,
           hoverOffset: 4,
@@ -66,7 +106,7 @@ const AdminDashboard = () => {
       lineChart.current?.destroy();
       donutChart.current?.destroy();
     };
-  }, []);
+  }, [stats]);
 
   return (
     <div className="adm-page">
@@ -75,9 +115,14 @@ const AdminDashboard = () => {
       <div className="adm-stat-grid">
         <div className="adm-stat-card req">
           <div className="adm-stat-label">Requests today</div>
-          <div className="adm-stat-num">12,540</div>
-          <div className="adm-stat-sub">+8.3% from yesterday</div>
+          <div className="adm-stat-num">
+            {stats ? stats.today_usage.toLocaleString() : '—'}
+          </div>
+          <div className="adm-stat-sub">
+            {stats ? `${stats.today_errors} errors (429)` : 'loading...'}
+          </div>
         </div>
+        {/* TODO: ต้องมี admin endpoint ถึงจะแสดงข้อมูลจริงได้ */}
         <div className="adm-stat-card usr">
           <div className="adm-stat-label">Total users</div>
           <div className="adm-stat-num">120</div>
@@ -90,6 +135,7 @@ const AdminDashboard = () => {
         </div>
       </div>
 
+      {/* TODO: ต้องมี admin endpoint สำหรับ top users */}
       <div className="adm-panel-full">
         <p className="adm-section-label">Top 5 Users — API usage today</p>
         <table className="adm-table">
@@ -100,7 +146,7 @@ const AdminDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {topUsers.map(u => (
+            {MOCK_TOP_USERS.map(u => (
               <tr key={u.rank}>
                 <td className="adm-rank">{u.rank}</td>
                 <td>{u.name}</td>
@@ -118,6 +164,7 @@ const AdminDashboard = () => {
         <div className="adm-panel">
           <p className="adm-section-label">Requests — last 7 days</p>
           <div className="adm-chart-wrap">
+            {!stats && <p style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>loading...</p>}
             <canvas ref={lineRef}></canvas>
           </div>
         </div>
@@ -126,7 +173,7 @@ const AdminDashboard = () => {
           <div className="adm-donut-wrap">
             <canvas ref={donutRef} width="120" height="120"></canvas>
             <div className="adm-legend-list">
-              {[['#888780','Free',60],['#378ADD','Medium',32],['#534AB7','Premium',8]].map(([c,l,v]) => (
+              {[['#888780','Free', MOCK_PLAN_DATA.Free], ['#378ADD','Medium', MOCK_PLAN_DATA.Medium], ['#534AB7','Premium', MOCK_PLAN_DATA.Premium]].map(([c,l,v]) => (
                 <div key={l} className="adm-legend-item">
                   <span className="adm-legend-label">
                     <span className="adm-legend-dot" style={{ background: c }}></span>{l}
