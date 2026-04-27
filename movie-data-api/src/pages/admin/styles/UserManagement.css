@@ -1,0 +1,243 @@
+/* ===== Wrapper ===== */
+.um-wrapper {
+  padding: 32px 40px;
+  font-family: inherit;
+  background: #f3f4f6;
+  min-height: 100vh;
+}
+
+/* ===== Header ===== */
+.um-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.um-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+/* ===== Search ===== */
+.um-search-box {
+  display: flex;
+  align-items: center;
+  background: #ede9fe;
+  border-radius: 999px;
+  padding: 10px 18px;
+  gap: 10px;
+  width: 320px;
+}
+
+.um-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  color: #374151;
+  outline: none;
+}
+
+.um-search-input::placeholder {
+  color: #a78bfa;
+}
+
+.um-search-icon-left,
+.um-search-icon-right {
+  font-size: 1rem;
+  color: #7c3aed;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ===== Table Wrapper ===== */
+.um-table-wrapper {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* ===== Table ===== */
+.um-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.um-table thead tr {
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.um-table th {
+  padding: 14px 20px;
+  text-align: left;
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.um-table tbody tr {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.15s;
+}
+
+.um-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.um-table tbody tr:hover {
+  background: #fafafa;
+}
+
+.um-table td {
+  padding: 14px 20px;
+  color: #111827;
+  vertical-align: middle;
+}
+
+/* ===== API Key ===== */
+.apikey-text {
+  font-family: monospace;
+  font-size: 0.85rem;
+  background: #f3f4f6;
+  padding: 3px 8px;
+  border-radius: 6px;
+  color: #374151;
+}
+
+/* ===== Plan Badge ===== */
+.plan-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.plan-premium {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.plan-medium {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.plan-free {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* ===== Status Badge ===== */
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.status-active {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.status-limit {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-block {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* ===== Action Dropdown ===== */
+.action-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.action-btn:hover {
+  background: #f3f4f6;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  min-width: 140px;
+  padding: 6px 0;
+}
+
+.dropdown-section-label {
+  padding: 6px 14px 2px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9ca3af;
+  margin: 0;
+  font-weight: 600;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 8px 14px;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: 0.88rem;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dropdown-item:hover {
+  background: #f9fafb;
+}
+
+.dropdown-item.active {
+  background: #ede9fe;
+  color: #7c3aed;
+  font-weight: 600;
+}
+
+.dropdown-divider {
+  border: none;
+  border-top: 1px solid #f3f4f6;
+  margin: 6px 0;
+}
+
+/* ===== Empty ===== */
+.um-empty {
+  text-align: center;
+  color: #9ca3af;
+  padding: 40px 0;
+  font-size: 0.9rem;
+}

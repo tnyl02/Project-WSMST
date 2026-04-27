@@ -1,0 +1,168 @@
+/* ===== Page ===== */
+.me-page {
+  min-height: 100vh;
+  background: #f3f4f6;
+  padding: 40px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.me-page-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 28px;
+  text-align: center;
+}
+
+/* ===== Card ===== */
+.me-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 36px 40px;
+  width: 100%;
+  max-width: 700px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ===== Row ===== */
+.me-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 560px) {
+  .me-row {
+    grid-template-columns: 1fr;
+  }
+
+  .me-card {
+    padding: 24px 20px;
+  }
+}
+
+/* ===== Field ===== */
+.me-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.me-field-full {
+  grid-column: 1 / -1;
+}
+
+/* ===== Label ===== */
+.me-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+/* ===== Input ===== */
+.me-input {
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.2s;
+  background: #fff;
+}
+
+.me-input:focus {
+  border-color: #9ca3af;
+}
+
+/* ===== Textarea ===== */
+.me-textarea {
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #111827;
+  outline: none;
+  resize: vertical;
+  line-height: 1.6;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.me-textarea:focus {
+  border-color: #9ca3af;
+}
+
+/* ===== Footer ===== */
+.me-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.me-save-btn {
+  width: 200px;
+  padding: 12px 0;
+  background: #111827;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.me-save-btn:hover {
+  background: #374151;
+}
+
+/* ===== Not Found ===== */
+.me-not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 80px 0;
+  color: #6b7280;
+}
+
+.me-not-found button {
+  padding: 8px 20px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+/* ===== Cancel Button ===== */
+.me-cancel-btn {
+  width: 120px;
+  padding: 12px 0;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.me-cancel-btn:hover {
+  background: #e5e7eb;
+}
+
+/* ===== Footer (2 buttons) ===== */
+.me-footer {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 8px;
+}
