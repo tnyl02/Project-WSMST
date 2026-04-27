@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import '../styles/ApiManagement.css';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 const ApiManagementPage = () => {
   const [keyData, setKeyData] = useState(null);
@@ -18,12 +17,12 @@ const ApiManagementPage = () => {
   const fetchKey = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/key/`, { headers: authHeader() });
+      const res = await fetch(`/api/key/`, { headers: authHeader() });
       if (!res.ok) throw new Error();
       const data = await res.json();
       setKeyData(data);
     } catch {
-      toast.error('โหลด API Key ไม่สำเร็จ');
+      toast.error('Failed to load API Key');
     } finally {
       setLoading(false);
     }
@@ -33,9 +32,9 @@ const ApiManagementPage = () => {
 
   // Regenerate key
   const handleRegenerate = async () => {
-    if (!window.confirm('สร้าง API Key ใหม่? Key เดิมจะหยุดทำงานทันที')) return;
+    if (!window.confirm('Create new API Key? The old key will stop working immediately.')) return;
     try {
-      const res = await fetch(`${API_URL}/api/key/regenerate`, {
+      const res = await fetch(`/api/key/regenerate`, {
         method: 'POST',
         headers: authHeader(),
       });
@@ -43,26 +42,26 @@ const ApiManagementPage = () => {
       const data = await res.json();
       setKeyData(prev => ({ ...prev, api_key: data.new_key, status: 'Active' }));
       setShow(false);
-      toast.success('สร้าง API Key ใหม่สำเร็จ');
+      toast.success('Successfully created new API Key');
     } catch {
-      toast.error('สร้าง Key ใหม่ไม่สำเร็จ');
+      toast.error('Failed to create new API Key');
     }
   };
 
   // Revoke key
   const handleRevoke = async () => {
-    if (!window.confirm('ระงับ API Key นี้? จะไม่สามารถใช้งานได้จนกว่าจะ Regenerate')) return;
+    if (!window.confirm('Revoke this API Key? It will not be able to be used until regenerated.')) return;
     try {
-      const res = await fetch(`${API_URL}/api/key/revoke`, {
+      const res = await fetch(`/api/key/revoke`, {
         method: 'POST',
         headers: authHeader(),
       });
       if (!res.ok) throw new Error();
       setKeyData(prev => ({ ...prev, api_key: 'REVOKED', status: 'Revoked (ถูกระงับ)' }));
       setShow(false);
-      toast.success('ระงับ API Key สำเร็จ');
+      toast.success('Successfully revoked API Key');
     } catch {
-      toast.error('ระงับ Key ไม่สำเร็จ');
+      toast.error('Failed to revoke API Key');
     }
   };
 
@@ -72,7 +71,7 @@ const ApiManagementPage = () => {
       await navigator.clipboard.writeText(keyData.api_key);
       toast.success('Copied to clipboard!');
     } catch {
-      toast.error('Copy ไม่สำเร็จ');
+      toast.error('Failed to copy API Key');
     }
   };
 
@@ -86,13 +85,13 @@ const ApiManagementPage = () => {
 
       {loading ? (
         <div className="empty-state">
-          <p>กำลังโหลด...</p>
+          <p>Loading...</p>
         </div>
       ) : !keyData ? (
         <div className="empty-state">
           <span className="empty-icon">🔑</span>
-          <h3>ไม่พบ API Key</h3>
-          <p>ติดต่อผู้ดูแลระบบ</p>
+          <h3>No API Key found</h3>
+          <p>Contact system administrator</p>
         </div>
       ) : (
         <div className="key-card-item">

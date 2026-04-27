@@ -3,7 +3,6 @@ import StatCard from '../components/Dashboard/StatCard';
 import ApiKeyBox from '../components/ApiManagement/ApiKeyBox';
 import UsageChart from '../components/Dashboard/UsageChart';
 import RateLimitProgress from '../components/Dashboard/RateLimitProgress';
-import EndpointPieChart from '../components/Dashboard/EndpointPieChart';
 import '../styles/Dashboard.css';
 
 // ข้อมูลจำลอง — ลบออกเมื่อ Backend พร้อม
@@ -71,7 +70,7 @@ const Dashboard = () => {
         setData(json);
       } catch (err) {
         console.error("Dashboard Fetch Error:", err);
-        setError('ไม่สามารถเชื่อมต่อ Backend ได้ หรือสิทธิ์การเข้าถึงหมดอายุ');
+        setError('Unable to connect to the backend or access denied.');
       } finally {
         setLoading(false);
       }
@@ -84,7 +83,7 @@ const Dashboard = () => {
     return (
       <div className="loading-container">
         <div className="spinner"></div>
-        <p className="loading-text">กำลังเตรียมข้อมูล Dashboard...</p>
+        <p className="loading-text">Loading Dashboard data...</p>
       </div>
     );
   }
@@ -144,12 +143,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="bottom-grid">
-        <div className="chart-card pie-section">
-          <h3>Endpoint breakdown</h3>
-          <EndpointPieChart breakdown={data.endpointBreakdown} />
-        </div>
-      </div>
     </div>
   );
 };

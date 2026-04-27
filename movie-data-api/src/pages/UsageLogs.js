@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/UsageLogs.css';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 const getStatusClass = (s) => {
   if (s >= 500) return 'status-5xx';
@@ -69,7 +68,7 @@ const UsageLogs = () => {
         setError(null);
 
         const token = localStorage.getItem('token');
-        const res = await fetch(`${API_URL}/api/logs`, {
+        const res = await fetch(`/api/logs`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -89,7 +88,7 @@ const UsageLogs = () => {
         setLogs(normalized);
       } catch (err) {
         console.error('UsageLogs fetch error:', err);
-        setError('ไม่สามารถโหลด logs ได้');
+        setError('Unable to load logs.');
       } finally {
         setLoading(false);
       }

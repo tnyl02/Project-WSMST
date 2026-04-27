@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import '../styles/AdminDashboard.css';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 // TODO: ต้องเพิ่ม admin endpoint ใน backend ถึงจะดึงข้อมูลจริงได้
 // เช่น GET /api/admin/stats → { total_users, requests_today, top_users, plan_breakdown }
@@ -32,7 +31,7 @@ const AdminDashboard = () => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`${API_URL}/api/dashboard/stats`, {
+        const res = await fetch(`/api/dashboard/stats`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error('fetch failed');

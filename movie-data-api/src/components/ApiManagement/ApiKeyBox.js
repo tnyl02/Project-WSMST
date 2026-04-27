@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
-
 // ApiKeyBox — widget เล็กสำหรับใช้ใน Dashboard
 const ApiKeyBox = () => {
   const [keyData, setKeyData] = useState(null);
@@ -12,7 +10,7 @@ const ApiKeyBox = () => {
     const fetchKey = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`${API_URL}/api/key/`, {
+        const res = await fetch(`/api/key/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error();

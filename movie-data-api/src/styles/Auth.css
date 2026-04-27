@@ -119,3 +119,23 @@
 .content-area.full-width {
   padding: 0; /* หรือปรับตามดีไซน์หน้า Home/Login */
 }
+
+.password-input-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.password-toggle-btn:focus {
+  outline: none;
+}
+
+.password-toggle-btn:hover {
+  color: #333; /* ให้ไอคอนเข้มขึ้นเมื่อเอาเมาส์ไปวาง */
+}
+
+.field-input {
+  /* สไตล์เดิมของคุณ */
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}

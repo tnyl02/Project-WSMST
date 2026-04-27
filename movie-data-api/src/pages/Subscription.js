@@ -3,7 +3,6 @@ import { toast } from 'react-toastify';
 import { pricingPlans } from '../data/plans';
 import '../styles/Subscription.css';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 // map plan id ของ frontend → ชื่อที่ backend รับ
 const PLAN_ID_TO_API = {
@@ -33,7 +32,7 @@ const Subscription = ({ setCurrentPlan }) => {
   useEffect(() => {
     const fetchPlan = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/user/profile`, {
+        const res = await fetch(`/api/user/profile`, {
           headers: authHeader(),
         });
         if (!res.ok) throw new Error();
@@ -57,7 +56,7 @@ const Subscription = ({ setCurrentPlan }) => {
     setUpgrading(planId);
 
     try {
-      const res = await fetch(`${API_URL}/api/subscription/upgrade`, {
+      const res = await fetch(`/api/subscription/upgrade`, {
         method: 'POST',
         headers: authHeader(),
         body: JSON.stringify({ plan: apiPlan }),
@@ -72,9 +71,9 @@ const Subscription = ({ setCurrentPlan }) => {
       localStorage.setItem('currentPlan', newPlanId);
       localStorage.setItem('plan', data.current_plan);
 
-      toast.success(`เปลี่ยนแพ็กเกจเป็น ${data.current_plan} สำเร็จ!`);
+      toast.success(`Successfully upgraded to ${data.current_plan}!`);
     } catch {
-      toast.error('เปลี่ยนแพ็กเกจไม่สำเร็จ กรุณาลองใหม่');
+      toast.error('Package change failed. Please try again.');
     } finally {
       setUpgrading(null);
     }
@@ -83,7 +82,7 @@ const Subscription = ({ setCurrentPlan }) => {
   if (loading) {
     return (
       <div className="subscription-container">
-        <p style={{ color: 'var(--color-text-secondary)' }}>กำลังโหลด...</p>
+        <p style={{ color: 'var(--color-text-secondary)' }}>Loading...</p>
       </div>
     );
   }
@@ -124,7 +123,7 @@ const Subscription = ({ setCurrentPlan }) => {
                   onClick={() => handleUpgrade(plan.id)}
                   disabled={!!upgrading}
                 >
-                  {isUpgrading ? 'กำลังเปลี่ยน...' : plan.buttonText}
+                  {isUpgrading ? 'Upgrading...' : plan.buttonText}
                 </button>
               )}
             </div>

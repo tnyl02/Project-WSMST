@@ -23,12 +23,12 @@ const Register = () => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error('รหัสผ่านไม่ตรงกัน');
+      toast.error('Passwords do not match');
       return;
     }
 
     if (formData.password.length < 4) {
-      toast.error('รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร');
+      toast.error('Password must be at least 4 characters long');
       return;
     }
 
@@ -44,7 +44,7 @@ const Register = () => {
         }
       );
 
-      toast.success('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ', {
+      toast.success('Registration successful! Please log in.', {
         position: 'top-right',
         autoClose: 2000,
       });
@@ -52,7 +52,7 @@ const Register = () => {
       setTimeout(() => navigate('/login'), 1500);
 
     } catch (error) {
-      const msg = error.response?.data?.error || 'เกิดข้อผิดพลาดในการสมัครสมาชิก';
+      const msg = error.response?.data?.error || 'Failed to register. Please try again.';
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -130,7 +130,7 @@ const Register = () => {
           </div>
 
           <button type="submit" className="btn-auth-submit" disabled={loading}>
-            {loading ? 'กำลังสมัคร...' : <> Create account <span className="arrow">⟶</span> </>}
+            {loading ? 'Creating account...' : <> Create account <span className="arrow">⟶</span> </>}
           </button>
         </form>
       </div>
