@@ -1,6 +1,4 @@
-
-// src/pages/MovieExplorer.js (ทำแบบเดียวกันกับหน้าอื่นๆ)
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "../styles/MovieExplorer.css";
 
@@ -11,128 +9,69 @@ const PLAN_LIMITS = {
   premium: 300,
 };
 
-const MOVIES = [
-  {
-    id: 1,
-    title: "Dune",
-    genre: "Sci-fi",
-    year: 2021,
-    runtime: "155 min",
-    director: "Denis Villeneuve",
-    score: 8.0,
-    imageUrl: "https://img.scope.dev/1.jpg",
-    synopsis:
-      "A noble family becomes embroiled in a war for the desert planet Arrakis, sole source of the most valuable substance in the universe.",
-  },
-  {
-    id: 2,
-    title: "Inception",
-    genre: "Sci-fi",
-    year: 2010,
-    runtime: "148 min",
-    director: "Christopher Nolan",
-    score: 8.8,
-    imageUrl: "https://img.scope.dev/2.jpg",
-    synopsis:
-      "A thief who steals secrets through dream-sharing technology is offered a chance to erase his past.",
-  },
-  {
-    id: 3,
-    title: "The Conjuring",
-    genre: "Horror",
-    year: 2013,
-    runtime: "112 min",
-    director: "James Wan",
-    score: 7.5,
-    imageUrl: "https://img.scope.dev/3.jpg",
-    synopsis:
-      "Paranormal investigators help a family terrorized by a dark presence in their farmhouse.",
-  },
-  {
-    id: 4,
-    title: "Parasite",
-    genre: "Drama",
-    year: 2019,
-    runtime: "132 min",
-    director: "Bong Joon Ho",
-    score: 8.5,
-    imageUrl: "https://img.scope.dev/4.jpg",
-    synopsis:
-      "A struggling family schemes its way into the lives of a wealthy household with unexpected consequences.",
-  },
-  {
-    id: 5,
-    title: "Mad Max: Fury Road",
-    genre: "Action",
-    year: 2015,
-    runtime: "120 min",
-    director: "George Miller",
-    score: 8.1,
-    imageUrl: "https://img.scope.dev/5.jpg",
-    synopsis:
-      "In a desert wasteland, two rebels flee a tyrant in a high-speed fight for survival.",
-  },
-  {
-    id: 6,
-    title: "Interstellar",
-    genre: "Sci-fi",
-    year: 2014,
-    runtime: "169 min",
-    director: "Christopher Nolan",
-    score: 8.7,
-    imageUrl: "https://img.scope.dev/6.jpg",
-    synopsis:
-      "Explorers travel through a wormhole to find a new home for humanity as Earth fades.",
-  },
-  {
-    id: 7,
-    title: "Get Out",
-    genre: "Horror",
-    year: 2017,
-    runtime: "104 min",
-    director: "Jordan Peele",
-    score: 7.8,
-    imageUrl: "https://img.scope.dev/7.jpg",
-    synopsis:
-      "A weekend visit to meet a partner's family reveals a terrifying hidden reality.",
-  },
-  {
-    id: 8,
-    title: "La La Land",
-    genre: "Romance",
-    year: 2016,
-    runtime: "128 min",
-    director: "Damien Chazelle",
-    score: 8.0,
-    imageUrl: "https://img.scope.dev/8.jpg",
-    synopsis:
-      "An aspiring actress and a jazz musician fall in love while chasing their dreams in Los Angeles.",
-  },
-  {
-    id: 9,
-    title: "Whiplash",
-    genre: "Drama",
-    year: 2014,
-    runtime: "106 min",
-    director: "Damien Chazelle",
-    score: 8.5,
-    imageUrl: "https://img.scope.dev/9.jpg",
-    synopsis:
-      "A young drummer pushes himself under a ruthless instructor in pursuit of greatness.",
-  },
-  {
-    id: 10,
-    title: "John Wick",
-    genre: "Action",
-    year: 2014,
-    runtime: "101 min",
-    director: "Chad Stahelski",
-    score: 7.4,
-    imageUrl: "https://img.scope.dev/10.jpg",
-    synopsis:
-      "A retired assassin returns to the underworld after losing the last gift from his wife.",
-  },
-];
+const normalizeGenres = (genreValue) => {
+  if (Array.isArray(genreValue)) {
+    return genreValue
+      .map((item) => {
+        if (typeof item === "string") {
+          return item.trim();
+        }
+        if (item && typeof item === "object" && item.name) {
+          return String(item.name).trim();
+        }
+        return "";
+      })
+      .filter(Boolean);
+  }
+
+  if (typeof genreValue === "string") {
+    const trimmed = genreValue.trim();
+    if (!trimmed) {
+      return [];
+    }
+
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      try {
+        return normalizeGenres(JSON.parse(trimmed));
+      } catch (error) {
+        const nameMatches = [...trimmed.matchAll(/name:\s*([^,}\]]+)/g)];
+        if (nameMatches.length > 0) {
+          return nameMatches.map((match) => match[1].trim());
+        }
+      }
+    }
+
+    return trimmed
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
+
+const mapBackendMovie = (movie) => {
+  const genres = normalizeGenres(movie.genre);
+
+  return {
+    id: movie.id,
+    title: movie.title || "",
+    genre: genres.join(", ") || "-",
+    genres,
+    year: movie.release_year ?? "-",
+    runtime:
+      movie.runtime !== null && movie.runtime !== undefined
+        ? `${movie.runtime} min`
+        : "-",
+    director: movie.director || "-",
+    score:
+      typeof movie.rating === "number"
+        ? movie.rating
+        : Number.parseFloat(movie.rating || 0) || 0,
+    imageUrl: movie.image_url || "",
+    synopsis: movie.description || "No synopsis available.",
+  };
+};
 
 const DetailRow = ({ label, value, locked }) => (
   <div className="movie-detail-row">
@@ -142,36 +81,106 @@ const DetailRow = ({ label, value, locked }) => (
 );
 
 export default function MovieExplorer() {
-  const [plan, setPlan] = useState("free");
+  const token = localStorage.getItem("token");
+  const storedPlan = localStorage.getItem("plan") || "free";
+  const isLoggedIn = Boolean(token);
+
+  const [plan] = useState(isLoggedIn ? storedPlan : "guest");
   const [usedQuota, setUsedQuota] = useState(0);
   const [query, setQuery] = useState("");
   const [genre, setGenre] = useState("all");
   const [sort, setSort] = useState("default");
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const [isGuestPreview, setIsGuestPreview] = useState(false);
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(isLoggedIn);
+  const [loadError, setLoadError] = useState("");
 
-  const quotaLimit = PLAN_LIMITS[plan];
+  const quotaLimit = PLAN_LIMITS[plan] ?? PLAN_LIMITS.free;
   const isRateLimited = usedQuota >= quotaLimit && plan !== "guest";
   const isFreePlan = plan === "free";
   const canUseFullDataset = plan !== "guest";
   const hasAdvancedTools = plan === "medium" || plan === "premium";
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchMovies = async () => {
+      if (!token) {
+        setMovies([]);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setLoadError("");
+
+        const keyRes = await fetch("/api/key/", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!keyRes.ok) {
+          throw new Error("Failed to load API key");
+        }
+
+        const keyData = await keyRes.json();
+        if (!keyData.api_key || keyData.api_key === "REVOKED") {
+          throw new Error("API key is unavailable");
+        }
+
+        const moviesRes = await fetch("/api/movies/", {
+          headers: {
+            "x-api-key": keyData.api_key,
+          },
+        });
+
+        if (!moviesRes.ok) {
+          throw new Error("Failed to load movies");
+        }
+
+        const movieData = await moviesRes.json();
+        const mappedMovies = (movieData.data || []).map(mapBackendMovie);
+
+        if (isMounted) {
+          setMovies(mappedMovies);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setMovies([]);
+          setLoadError("Unable to load movies from backend right now.");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchMovies();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token]);
+
   const genres = useMemo(
-    () => ["all", ...Array.from(new Set(MOVIES.map((movie) => movie.genre)))],
-    []
+    () => ["all", ...Array.from(new Set(movies.flatMap((movie) => movie.genres)))],
+    [movies]
   );
 
   const visibleMovies = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    const result = MOVIES.filter((movie) => {
+    const result = movies.filter((movie) => {
       const matchesQuery =
         !normalizedQuery ||
         movie.title.toLowerCase().includes(normalizedQuery) ||
         movie.genre.toLowerCase().includes(normalizedQuery) ||
         String(movie.year).includes(normalizedQuery);
 
-      const matchesGenre = genre === "all" || movie.genre === genre;
+      const matchesGenre = genre === "all" || movie.genres.includes(genre);
 
       return matchesQuery && matchesGenre;
     });
@@ -185,7 +194,7 @@ export default function MovieExplorer() {
     }
 
     return canUseFullDataset ? result : result.slice(0, 4);
-  }, [canUseFullDataset, genre, query, sort]);
+  }, [canUseFullDataset, genre, movies, query, sort]);
 
   const requestDemo = (callback) => {
     if (plan === "guest") {
@@ -207,7 +216,6 @@ export default function MovieExplorer() {
 
   const handleSearchChange = (event) => {
     setQuery(event.target.value);
-    requestDemo(() => {});
   };
 
   const handleReset = () => {
@@ -220,7 +228,7 @@ export default function MovieExplorer() {
 
   return (
     <main className="movie-explorer">
-      {isGuestPreview && (
+      {!isLoggedIn && (
         <div className="explorer-signup-banner">
           Want to build your own movie app? Sign up now to get your free API key
           and start making 5 requests per minute!
@@ -234,7 +242,7 @@ export default function MovieExplorer() {
           onChange={handleSearchChange}
           placeholder={
             hasAdvancedTools
-              ? "Search by title, genre, year......."
+              ? "Search by title, genre, year..."
               : "Search by title..."
           }
         />
@@ -263,24 +271,8 @@ export default function MovieExplorer() {
           </select>
         )}
 
-        <select
-          className="explorer-select explorer-plan"
-          value={plan}
-          onChange={(event) => {
-            setPlan(event.target.value);
-            setUsedQuota(0);
-            setSelectedMovie(null);
-            setIsGuestPreview(event.target.value === "guest");
-          }}
-        >
-          <option value="guest">Guest</option>
-          <option value="free">Free</option>
-          <option value="medium">Medium</option>
-          <option value="premium">Premium</option>
-        </select>
-
         <div className="quota-counter">
-          Quota: {usedQuota}/{quotaLimit}
+          Quota: {plan === "guest" ? 0 : usedQuota}/{quotaLimit}
         </div>
 
         <button className="toolbar-reset" onClick={handleReset}>
@@ -288,7 +280,15 @@ export default function MovieExplorer() {
         </button>
       </section>
 
-      {isRateLimited ? (
+      {loading ? (
+        <section className="guest-unlock">
+          <p>Loading movies...</p>
+        </section>
+      ) : loadError ? (
+        <section className="guest-unlock">
+          <p>{loadError}</p>
+        </section>
+      ) : isRateLimited ? (
         <section className="rate-limit-panel" role="alert">
           <h1>429</h1>
           <strong>Rate limit exceeded</strong>
@@ -313,25 +313,40 @@ export default function MovieExplorer() {
               >
                 <div
                   className={`movie-poster ${
-                    isGuestPreview && index === 3 ? "poster-locked" : ""
+                    !isLoggedIn && index === 3 ? "poster-locked" : ""
                   }`}
+                  style={
+                    movie.imageUrl
+                      ? {
+                          backgroundImage: `url(${movie.imageUrl})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }
+                      : undefined
+                  }
                 />
-                <span>{isGuestPreview && index === 3 ? "xxxxx" : movie.title}</span>
-                <small>{isGuestPreview && index === 3 ? "xxxxx" : movie.genre}</small>
+                <span>{!isLoggedIn && index === 3 ? "xxxxx" : movie.title}</span>
+                <small>{!isLoggedIn && index === 3 ? "xxxxx" : movie.genre}</small>
                 <small className="movie-score">
-                  {isGuestPreview && index === 3 ? "x.x" : movie.score.toFixed(1)}
+                  {!isLoggedIn && index === 3 ? "x.x" : movie.score.toFixed(1)}
                 </small>
               </button>
             ))}
           </section>
 
-          {isGuestPreview && (
+          {!isLoggedIn && (
             <section className="guest-unlock">
               <p>
-                Showing 4 of {MOVIES.length} films. Login to access the full
-                database.
+                Showing {visibleMovies.length} of {movies.length} films. Login to
+                access the full database.
               </p>
               <Link to="/register">Sign up free to unlock all -&gt;</Link>
+            </section>
+          )}
+
+          {!visibleMovies.length && (
+            <section className="guest-unlock">
+              <p>No movies found.</p>
             </section>
           )}
         </>
@@ -370,7 +385,7 @@ export default function MovieExplorer() {
             )}
 
             <dl className="movie-detail-list">
-              <DetailRow label="year" value={selectedMovie.year} />
+              <DetailRow label="Year" value={selectedMovie.year} />
               <DetailRow label="Genre" value={selectedMovie.genre} />
               <DetailRow label="Runtime" value={selectedMovie.runtime} />
               <DetailRow label="Director" value={selectedMovie.director} />
@@ -380,7 +395,7 @@ export default function MovieExplorer() {
               />
               <DetailRow
                 label="Image URL"
-                value={isFreePlan ? "xxxxxxxxxxxxxxx" : selectedMovie.imageUrl}
+                value={isFreePlan ? "xxxxxxxxxxxxxxx" : selectedMovie.imageUrl || "-"}
                 locked={isFreePlan}
               />
             </dl>
@@ -415,4 +430,4 @@ export default function MovieExplorer() {
       )}
     </main>
   );
-}
+} 
