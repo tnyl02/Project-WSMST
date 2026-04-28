@@ -26,24 +26,9 @@ const normalizePlanCounts = (users) => {
   return counts;
 };
 
-const normalizeRoleCounts = (users) => {
-  const counts = { user: 0, admin: 0 };
-
-  users.forEach((user) => {
-    const role = String(user.role || "user").toLowerCase();
-    if (counts[role] !== undefined) {
-      counts[role] += 1;
-    }
-  });
-
-  return counts;
-};
-
 const AdminDashboard = () => {
   const planChartRef = useRef(null);
-  const roleChartRef = useRef(null);
   const planChart = useRef(null);
-  const roleChart = useRef(null);
 
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
@@ -106,19 +91,17 @@ const AdminDashboard = () => {
   }, []);
 
   const planCounts = useMemo(() => normalizePlanCounts(users), [users]);
-  const roleCounts = useMemo(() => normalizeRoleCounts(users), [users]);
   const latestUsers = useMemo(
     () => [...users].sort((a, b) => b.id - a.id).slice(0, 5),
     [users]
   );
 
   useEffect(() => {
-    if (!planChartRef.current || !roleChartRef.current) {
+    if (!planChartRef.current) {
       return;
     }
 
     planChart.current?.destroy();
-    roleChart.current?.destroy();
 
     planChart.current = new Chart(planChartRef.current, {
       type: "doughnut",
@@ -140,31 +123,10 @@ const AdminDashboard = () => {
       },
     });
 
-    roleChart.current = new Chart(roleChartRef.current, {
-      type: "doughnut",
-      data: {
-        labels: ["User", "Admin"],
-        datasets: [
-          {
-            data: [roleCounts.user, roleCounts.admin],
-            backgroundColor: ["#1D9E75", "#7C3AED"],
-            borderWidth: 0,
-            hoverOffset: 4,
-          },
-        ],
-      },
-      options: {
-        responsive: false,
-        cutout: "68%",
-        plugins: { legend: { display: false } },
-      },
-    });
-
     return () => {
       planChart.current?.destroy();
-      roleChart.current?.destroy();
     };
-  }, [planCounts, roleCounts]);
+  }, [planCounts]);
 
   return (
     <div className="adm-page">
@@ -253,42 +215,15 @@ const AdminDashboard = () => {
       </div>
 
       <div className="adm-panels">
-        <div className="adm-panel">
+        <div className="adm-panel adm-panel-wide">
           <p className="adm-section-label">Subscription Overview</p>
           <div className="adm-donut-wrap">
-            <canvas ref={planChartRef} width="120" height="120"></canvas>
+            <canvas ref={planChartRef} width="168" height="168"></canvas>
             <div className="adm-legend-list">
               {[
                 ["#888780", "Free", planCounts.free],
                 ["#378ADD", "Medium", planCounts.medium],
                 ["#534AB7", "Premium", planCounts.premium],
-              ].map(([color, label, value]) => (
-                <div key={label} className="adm-legend-item">
-                  <span className="adm-legend-label">
-                    <span
-                      className="adm-legend-dot"
-                      style={{ background: color }}
-                    ></span>
-                    {label}
-                  </span>
-                  <span className="adm-legend-val">{value}</span>
-                </div>
-              ))}
-              <div className="adm-total-line">
-                Total <span>{users.length}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="adm-panel">
-          <p className="adm-section-label">Role Overview</p>
-          <div className="adm-donut-wrap">
-            <canvas ref={roleChartRef} width="120" height="120"></canvas>
-            <div className="adm-legend-list">
-              {[
-                ["#1D9E75", "User", roleCounts.user],
-                ["#7C3AED", "Admin", roleCounts.admin],
               ].map(([color, label, value]) => (
                 <div key={label} className="adm-legend-item">
                   <span className="adm-legend-label">
