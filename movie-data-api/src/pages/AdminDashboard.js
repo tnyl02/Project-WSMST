@@ -169,7 +169,7 @@ const AdminDashboard = () => {
         <table className="adm-table">
           <thead>
             <tr>
-              <th>ID</th>
+              {/* <th>ID</th> */}
               <th>Username</th>
               <th>Email</th>
               <th>Plan</th>
@@ -180,7 +180,7 @@ const AdminDashboard = () => {
             {latestUsers.length > 0 ? (
               latestUsers.map((user) => (
                 <tr key={user.id}>
-                  <td className="adm-mono">{user.id}</td>
+                  {/* <td className="adm-mono">{user.id}</td> */}
                   <td>{user.username}</td>
                   <td>{user.email}</td>
                   <td>
