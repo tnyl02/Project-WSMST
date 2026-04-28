@@ -4,10 +4,19 @@ import "../styles/MovieExplorer.css";
 
 const PLAN_LIMITS = {
   guest: 0,
-  free: 5,
-  medium: 60,
-  premium: 300,
+  free: 10,
+  medium: 50,
+  premium: 100,
 };
+
+const RESET_INTERVAL_MS = 60 * 1000;
+
+const formatResetTime = (timestamp) =>
+  new Date(timestamp).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 
 const normalizeGenres = (genreValue) => {
   if (Array.isArray(genreValue)) {
@@ -94,6 +103,8 @@ export default function MovieExplorer() {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(isLoggedIn);
   const [loadError, setLoadError] = useState("");
+  const [resetAt, setResetAt] = useState(() => Date.now() + RESET_INTERVAL_MS);
+  const [timeLeftMs, setTimeLeftMs] = useState(RESET_INTERVAL_MS);
 
   const quotaLimit = PLAN_LIMITS[plan] ?? PLAN_LIMITS.free;
   const isRateLimited = usedQuota >= quotaLimit && plan !== "guest";
@@ -166,6 +177,29 @@ export default function MovieExplorer() {
     };
   }, [token]);
 
+  useEffect(() => {
+    if (plan === "guest") {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      const now = Date.now();
+
+      if (now >= resetAt) {
+        setUsedQuota(0);
+        setResetAt(now + RESET_INTERVAL_MS);
+        setTimeLeftMs(RESET_INTERVAL_MS);
+        return;
+      }
+
+      setTimeLeftMs(resetAt - now);
+    }, 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [plan, resetAt]);
+
   const genres = useMemo(
     () => ["all", ...Array.from(new Set(movies.flatMap((movie) => movie.genres)))],
     [movies]
@@ -223,8 +257,12 @@ export default function MovieExplorer() {
 
   const handleReset = () => {
     setUsedQuota(0);
-    setSelectedMovie(null);
+    setResetAt(Date.now() + RESET_INTERVAL_MS);
+    setTimeLeftMs(RESET_INTERVAL_MS);
   };
+
+  const secondsUntilReset = Math.max(0, Math.ceil(timeLeftMs / 1000));
+  const resetTimeLabel = formatResetTime(resetAt);
 
   const lockedSynopsis =
     "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxx";
@@ -234,7 +272,7 @@ export default function MovieExplorer() {
       {!isLoggedIn && (
         <div className="explorer-signup-banner">
           Want to build your own movie app? Sign up now to get your free API key
-          and start making 5 requests per minute!
+          and start making 10 requests per minute!
         </div>
       )}
 
@@ -281,6 +319,9 @@ export default function MovieExplorer() {
 
         <div className="quota-counter">
           Quota: {plan === "guest" ? 0 : usedQuota}/{quotaLimit}
+          {plan !== "guest" && (
+            <span className="quota-reset-time">Reset in {secondsUntilReset}s</span>
+          )}
         </div>
 
         <button className="toolbar-reset" onClick={handleReset}>
@@ -304,9 +345,11 @@ export default function MovieExplorer() {
             You have used all {quotaLimit} requests for this minute. Upgrade for
             a higher rate limit.
           </p>
+          <p className="rate-limit-reset-text">
+            Quota resets at {resetTimeLabel} ({secondsUntilReset}s remaining)
+          </p>
           <div className="rate-limit-actions">
-            <button onClick={handleReset}>Reset quota (demo)</button>
-            <Link to="/register">View plans</Link>
+            <Link to="/subscription">View plans</Link>
           </div>
         </section>
       ) : (
@@ -426,7 +469,7 @@ export default function MovieExplorer() {
             <h2 id="login-required-title">Login required</h2>
             <p>
               Please login to explore our full database and get your API key.
-              Start for free - 5 requests per minute, no credit card needed.
+              Start for free - 10 requests per minute, no credit card needed.
             </p>
             <div className="login-actions">
               <Link to="/register">Sign up free -&gt;</Link>
