@@ -10,6 +10,8 @@ const PLAN_LIMITS = {
 };
 
 const RESET_INTERVAL_MS = 60 * 1000;
+const RESET_AT_STORAGE_KEY = "movieExplorerResetAt";
+const USED_QUOTA_STORAGE_KEY = "movieExplorerUsedQuota";
 
 const formatResetTime = (timestamp) =>
   new Date(timestamp).toLocaleTimeString([], {
@@ -88,13 +90,43 @@ const DetailRow = ({ label, value, locked }) => (
   </div>
 );
 
+const getInitialResetAt = () => {
+  const storedValue = Number(localStorage.getItem(RESET_AT_STORAGE_KEY));
+  const now = Date.now();
+
+  if (Number.isFinite(storedValue) && storedValue > now) {
+    return storedValue;
+  }
+
+  return now + RESET_INTERVAL_MS;
+};
+
+const getInitialUsedQuota = (plan) => {
+  if (plan === "guest") {
+    return 0;
+  }
+
+  const now = Date.now();
+  const storedResetAt = Number(localStorage.getItem(RESET_AT_STORAGE_KEY));
+
+  if (!Number.isFinite(storedResetAt) || storedResetAt <= now) {
+    localStorage.removeItem(USED_QUOTA_STORAGE_KEY);
+    return 0;
+  }
+
+  const storedQuota = Number(localStorage.getItem(USED_QUOTA_STORAGE_KEY));
+  return Number.isFinite(storedQuota) && storedQuota >= 0 ? storedQuota : 0;
+};
+
 export default function MovieExplorer() {
   const token = localStorage.getItem("token");
   const storedPlan = localStorage.getItem("plan") || "free";
   const isLoggedIn = Boolean(token);
 
   const [plan] = useState(isLoggedIn ? storedPlan : "guest");
-  const [usedQuota, setUsedQuota] = useState(0);
+  const [usedQuota, setUsedQuota] = useState(() =>
+    getInitialUsedQuota(isLoggedIn ? storedPlan : "guest")
+  );
   const [query, setQuery] = useState("");
   const [genre, setGenre] = useState("all");
   const [sort, setSort] = useState("default");
@@ -103,8 +135,10 @@ export default function MovieExplorer() {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(isLoggedIn);
   const [loadError, setLoadError] = useState("");
-  const [resetAt, setResetAt] = useState(() => Date.now() + RESET_INTERVAL_MS);
-  const [timeLeftMs, setTimeLeftMs] = useState(RESET_INTERVAL_MS);
+  const [resetAt, setResetAt] = useState(getInitialResetAt);
+  const [timeLeftMs, setTimeLeftMs] = useState(() =>
+    Math.max(0, getInitialResetAt() - Date.now())
+  );
 
   const quotaLimit = PLAN_LIMITS[plan] ?? PLAN_LIMITS.free;
   const isRateLimited = usedQuota >= quotaLimit && plan !== "guest";
@@ -169,6 +203,7 @@ useEffect(() => {
 
   useEffect(() => {
     if (plan === "guest") {
+      setUsedQuota(0);
       return undefined;
     }
 
@@ -189,6 +224,24 @@ useEffect(() => {
       window.clearInterval(intervalId);
     };
   }, [plan, resetAt]);
+
+  useEffect(() => {
+    if (plan === "guest") {
+      localStorage.removeItem(RESET_AT_STORAGE_KEY);
+      localStorage.removeItem(USED_QUOTA_STORAGE_KEY);
+      return;
+    }
+
+    localStorage.setItem(RESET_AT_STORAGE_KEY, String(resetAt));
+  }, [plan, resetAt]);
+
+  useEffect(() => {
+    if (plan === "guest") {
+      return;
+    }
+
+    localStorage.setItem(USED_QUOTA_STORAGE_KEY, String(usedQuota));
+  }, [plan, usedQuota]);
 
   const genres = useMemo(
     () => ["all", ...Array.from(new Set(movies.flatMap((movie) => movie.genres)))],
@@ -246,9 +299,10 @@ useEffect(() => {
   };
 
   const handleReset = () => {
-    setUsedQuota(0);
-    setResetAt(Date.now() + RESET_INTERVAL_MS);
-    setTimeLeftMs(RESET_INTERVAL_MS);
+    setQuery("");
+    setGenre("all");
+    setSort("default");
+    setSelectedMovie(null);
   };
 
   const secondsUntilReset = Math.max(0, Math.ceil(timeLeftMs / 1000));
@@ -315,7 +369,7 @@ useEffect(() => {
         </div>
 
         <button className="toolbar-reset" onClick={handleReset}>
-          Reset
+          Clear
         </button>
       </section>
 

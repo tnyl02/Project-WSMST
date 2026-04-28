@@ -286,7 +286,8 @@
 
 .movie-synopsis,
 .synopsis-locked {
-  max-width: 380px;
+  width: 100%;
+  max-width: none;
   margin: 0 0 28px;
   font-size: 18px;
   line-height: 1.25;
