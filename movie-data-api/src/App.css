@@ -47,13 +47,14 @@
   display: flex; /* ทำให้ Sidebar กับ Content เรียงซ้ายขวา */
   flex: 1;       /* ยืดความสูงให้เต็มที่ที่เหลือจาก Navbar */
   align-items: flex-start;
+  background-color: #f3f4f6;
 }
 
 .content-area {
   flex: 1;
   padding: 20px;
-  background-color: #f8f9fa;
-  min-height: 100vh;
+  background-color: #f3f4f6;
+
 }
 
 /* Home page ไม่มี padding และ background ขาว */

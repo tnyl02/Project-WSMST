@@ -63,7 +63,6 @@ const mapBackendMovie = (movie) => {
       movie.runtime !== null && movie.runtime !== undefined
         ? `${movie.runtime} min`
         : "-",
-    director: movie.director || "-",
     score:
       typeof movie.rating === "number"
         ? movie.rating
@@ -101,6 +100,7 @@ export default function MovieExplorer() {
   const isFreePlan = plan === "free";
   const canUseFullDataset = plan !== "guest";
   const hasAdvancedTools = plan === "medium" || plan === "premium";
+  const canFilterByGenre = hasAdvancedTools;
 
   useEffect(() => {
     let isMounted = true;
@@ -174,13 +174,16 @@ export default function MovieExplorer() {
   const visibleMovies = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     const result = movies.filter((movie) => {
-      const matchesQuery =
-        !normalizedQuery ||
-        movie.title.toLowerCase().includes(normalizedQuery) ||
-        movie.genre.toLowerCase().includes(normalizedQuery) ||
-        String(movie.year).includes(normalizedQuery);
+      const matchesQuery = !normalizedQuery
+        ? true
+        : hasAdvancedTools
+        ? movie.title.toLowerCase().includes(normalizedQuery) ||
+          movie.genre.toLowerCase().includes(normalizedQuery) ||
+          String(movie.year).includes(normalizedQuery)
+        : movie.title.toLowerCase().includes(normalizedQuery);
 
-      const matchesGenre = genre === "all" || movie.genres.includes(genre);
+      const matchesGenre =
+        !canFilterByGenre || genre === "all" || movie.genres.includes(genre);
 
       return matchesQuery && matchesGenre;
     });
@@ -194,7 +197,7 @@ export default function MovieExplorer() {
     }
 
     return canUseFullDataset ? result : result.slice(0, 4);
-  }, [canUseFullDataset, genre, movies, query, sort]);
+  }, [canFilterByGenre, canUseFullDataset, genre, hasAdvancedTools, movies, query, sort]);
 
   const requestDemo = (callback) => {
     if (plan === "guest") {
@@ -235,7 +238,10 @@ export default function MovieExplorer() {
         </div>
       )}
 
-      <section className="explorer-toolbar" aria-label="Movie filters">
+      <section
+        className={`explorer-toolbar ${canFilterByGenre ? "" : "explorer-toolbar-simple"}`.trim()}
+        aria-label="Movie filters"
+      >
         <input
           className="explorer-search"
           value={query}
@@ -247,17 +253,19 @@ export default function MovieExplorer() {
           }
         />
 
-        <select
-          className="explorer-select"
-          value={genre}
-          onChange={(event) => setGenre(event.target.value)}
-        >
-          {genres.map((item) => (
-            <option key={item} value={item}>
-              {item === "all" ? "All genres" : item}
-            </option>
-          ))}
-        </select>
+        {canFilterByGenre && (
+          <select
+            className="explorer-select"
+            value={genre}
+            onChange={(event) => setGenre(event.target.value)}
+          >
+            {genres.map((item) => (
+              <option key={item} value={item}>
+                {item === "all" ? "All genres" : item}
+              </option>
+            ))}
+          </select>
+        )}
 
         {hasAdvancedTools && (
           <select
@@ -388,7 +396,6 @@ export default function MovieExplorer() {
               <DetailRow label="Year" value={selectedMovie.year} />
               <DetailRow label="Genre" value={selectedMovie.genre} />
               <DetailRow label="Runtime" value={selectedMovie.runtime} />
-              <DetailRow label="Director" value={selectedMovie.director} />
               <DetailRow
                 label="Score"
                 value={<span className="detail-score">★ {selectedMovie.score.toFixed(1)}</span>}
