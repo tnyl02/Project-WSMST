@@ -39,6 +39,8 @@
 .adm-badge-premium  { background: #EEEDFE; color: #3C3489; }
 .adm-badge-medium   { background: #E6F1FB; color: #185FA5; }
 .adm-badge-free     { background: #F1EFE8; color: #5F5E5A; }
+.adm-badge-admin    { background: #EEE8FF; color: #6D28D9; }
+.adm-badge-user     { background: #E7F8F1; color: #0F766E; }
 
 /* Charts */
 .adm-chart-wrap { position: relative; width: 100%; height: 200px; margin-top: 16px; }
@@ -50,3 +52,18 @@
 .adm-legend-val { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; }
 .adm-total-line { font-size: 12px; color: #aaa; margin-top: 10px; padding-top: 10px; border-top: 0.5px solid #eee; }
 .adm-total-line span { font-family: 'DM Mono', monospace; font-weight: 500; color: #222; }
+
+.adm-error {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.adm-empty-cell {
+  padding: 18px 0;
+  text-align: center;
+  color: #9ca3af;
+}

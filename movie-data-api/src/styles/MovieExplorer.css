@@ -220,6 +220,7 @@
   display: grid;
   place-items: center;
   padding: 24px;
+  overflow-y: auto;
   animation: fade-in 160ms ease-out both;
 }
 
@@ -232,6 +233,11 @@
   padding: 38px 48px 42px;
   box-shadow: 0 22px 70px rgba(0, 0, 0, 0.18);
   animation: modal-in 180ms ease-out both;
+}
+
+.movie-modal {
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
 }
 
 .movie-modal h2,
@@ -291,9 +297,10 @@
 }
 
 .modal-close {
-  position: absolute;
+  position: sticky;
   top: 14px;
-  right: 16px;
+  margin-left: auto;
+  display: block;
   width: 28px;
   height: 28px;
   border: 0;
