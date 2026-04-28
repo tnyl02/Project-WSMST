@@ -3,7 +3,7 @@ export const pricingPlans = [
     id: 'starter',
     title: "Starter",
     price: "0",
-    badge: null,
+    badge: "Free",
     features: [
       "1,000 requests/month",
       "Rate limit: 10 req/min",

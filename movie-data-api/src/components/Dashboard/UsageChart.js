@@ -1,17 +1,47 @@
 import React from 'react';
 
-const UsageChart = () => {
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const CHART_HEIGHT = 150; // px ตรงกับ .bars-group height
+
+const UsageChart = ({ chartData = [] }) => {
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return {
+      date: d.toISOString().slice(0, 10),
+      label: d.toLocaleDateString('en-US', { weekday: 'short' }),
+      count: 0,
+    };
+  });
+
+  chartData.forEach(({ date, count }) => {
+    const found = last7Days.find(d => d.date === date);
+    if (found) found.count = count;
+  });
+
+  const maxCount = Math.max(...last7Days.map(d => d.count), 1);
+
   return (
     <div className="usage-chart-container">
       <div className="bars-group">
-        {/* กราฟแท่งจำลอง */}
-        {[40, 70, 55, 45, 60, 30, 65].map((height, i) => (
-          <div key={i} className="bar-wrapper">
-            <div className="bar" style={{ height: `${height}%` }}></div>
-            <span>{days[i]}</span>
-          </div>
-        ))}
+        {last7Days.map((day, i) => {
+          const barHeight = Math.max(Math.round((day.count / maxCount) * CHART_HEIGHT), day.count > 0 ? 4 : 0);
+          return (
+            <div key={i} className="bar-wrapper" title={`${day.date}: ${day.count} calls`}>
+              <span style={{ fontSize: '11px', color: '#aaa' }}>
+                {day.count > 0 ? day.count : ''}
+              </span>
+              <div
+                className="bar"
+                style={{
+                  height: `${barHeight}px`,
+                  background: day.count > 0 ? '#6c63ff' : '#e0e0e0',
+                  transition: 'height 0.4s ease',
+                }}
+              />
+              <span>{day.label}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

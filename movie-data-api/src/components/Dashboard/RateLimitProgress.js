@@ -7,12 +7,12 @@ const RateLimitProgress = ({ limits }) => {
         <div key={index} className="progress-item">
           <div className="progress-info">
             <span>{item.label}</span>
-            <span>{item.current} / {item.max}</span>
+            <span>{item.used} / {item.max === Infinity ? '∞' : item.max}</span>
           </div>
           <div className="progress-bar-bg">
             <div 
               className="progress-fill" 
-              style={{ width: `${(item.current / item.max) * 100}%` }}
+              style={{ width: item.max === Infinity ? '0%' : `${Math.min((item.used / item.max) * 100, 100)}%` }}
             ></div>
           </div>
         </div>

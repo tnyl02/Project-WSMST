@@ -71,14 +71,22 @@ const Dashboard = () => {
     : `${quotaUsed.toLocaleString()} / ${quotaMax.toLocaleString()}`;
   const planLabel  = plan.charAt(0).toUpperCase() + plan.slice(1);
 
+  const minute_usage  = data?.minute_usage  ?? 0;
+  const monthly_usage = data?.monthly_usage ?? 0;
+
   const rateLimits = [
-    { label: 'Per minute', used: Math.min(quotaUsed, perMin), max: perMin },
-    {
-      label: 'Per month',
-      used: quotaUsed,
-      max: quotaMax === Infinity ? Math.max(quotaUsed, 1) : quotaMax,
-    },
-  ];
+  { 
+    label: 'Per minute', 
+    used: Math.min(minute_usage, perMin), 
+    max: perMin 
+  },
+  {
+    label: 'Per month',
+    used: monthly_usage,
+    // แก้ไขบรรทัดนี้: ส่ง Infinity ไปตรงๆ เลย
+    max: quotaMax, 
+  },
+];
 
   return (
     <div className="dashboard-container">

@@ -67,7 +67,7 @@
 .progress-item    { margin-bottom: 25px; }
 .progress-info    { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
 .progress-bar-bg  { background: #f0f0f0; height: 10px; border-radius: 5px; overflow: hidden; }
-.progress-fill    { background: #d1d1d1; height: 100%; transition: width 0.3s ease; }
+.progress-fill    { background: #6c63ff; height: 100%; transition: width 0.3s ease; }
 
 /* Usage Bar Chart */
 .usage-chart-container { height: 200px; display: flex; align-items: flex-end; }
@@ -76,8 +76,8 @@
   justify-content: space-between;
   align-items: flex-end; height: 150px;
 }
-.bar-wrapper { display: flex; flex-direction: column; align-items: center; gap: 10px; flex: 1; }
-.bar         { width: 40px; background: #e0e0e0; border-radius: 4px 4px 0 0; }
+.bar-wrapper { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; height: 100%; justify-content: flex-end; }
+.bar         { width: 40px; min-height: 4px; background: #e0e0e0; border-radius: 4px 4px 0 0; }
 .bar-wrapper span { font-size: 12px; color: #999; }
 
 /* Pie / Endpoint Breakdown — ใช้ prefix .dash- ป้องกัน conflict */
