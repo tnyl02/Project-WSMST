@@ -10,7 +10,7 @@ import (
 )
 
 func GetMovies(c *gin.Context) {
-	query := `SELECT id, title, genre, release_year, runtime, language, rating, description, image_url FROM movies LIMIT 50`
+	query := `SELECT id, title, genre, release_year, runtime, language, rating, description, image_url FROM movies ORDER BY id ASC`
 	rows, err := config.DB.Query(context.Background(), query)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Query Failed: " + err.Error()})

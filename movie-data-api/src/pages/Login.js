@@ -23,7 +23,7 @@ const Login = ({ setIsLoggedIn }) => {
 
     try {
       const res = await axios.post('/api/auth/login', {
-        Email: formData.identifier,
+        email: formData.identifier,
         password: formData.password,
       });
 
