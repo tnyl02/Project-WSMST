@@ -41,22 +41,23 @@
   background-color: #e5e5e5;
 }
 
-/* ปุ่มสไตล์ Dashboard ที่เราเอามาใช้ซ้ำ */
+/* ปุ่ม outline ทุกปุ่มในหน้านี้ใช้สีเดียวกัน */
 .btn-outline {
   padding: 8px 16px;
   border: 1px solid #e0e0e0;
-  background: transparent;
+  background: white;
   border-radius: 8px;
   font-size: 14px;
-  color: #666;
+  color: #333;
   cursor: pointer;
   font-weight: 500;
+  transition: all 0.2s;
 }
 
 .btn-outline:hover {
-  background-color: #f8f8f8;
+  background-color: #f5f5f5;
   border-color: #ccc;
-  color: #333;
+  color: #111;
 }
 
 /* Header ของหน้า */

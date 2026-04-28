@@ -27,7 +27,7 @@ export const pricingPlans = [
       "Export: not available",
       "Support: email (reply within 24h)"
     ],
-    buttonText: "Subscribe to Developer"
+    buttonText: "Get started"
   },
   {
     id: 'enterprise',
@@ -42,6 +42,6 @@ export const pricingPlans = [
       "Export: bulk up to 1,000 titles/call",
       "Support: 24/7 priority consultant"
     ],
-    buttonText: "Contact Enterprise sales"
+    buttonText: "Get started"
   }
 ];

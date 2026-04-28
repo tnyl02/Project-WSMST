@@ -50,8 +50,14 @@
 }
 
 .content-area {
-  flex: 1;       /* ให้เนื้อหาหลักกินพื้นที่ที่เหลือทั้งหมด */
+  flex: 1;
   padding: 20px;
   background-color: #f8f9fa;
+  min-height: 100vh;
+}
 
+/* Home page ไม่มี padding และ background ขาว */
+.content-area.home-page {
+  padding: 0;
+  background-color: #e5e5e5;
 }
