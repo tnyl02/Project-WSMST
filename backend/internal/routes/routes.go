@@ -18,13 +18,27 @@ func SetupRouter() *gin.Engine {
 		authGroup.POST("/login", controllers.Login)
 	}
 
+	// ==========================================
+	// 🎬 กลุ่มที่ 1: สำหรับลูกค้าภายนอก (ใช้ API Key + โดนจำกัดโควต้า)
+	// ==========================================
 	movieGroup := r.Group("/api/movies")
 	movieGroup.Use(middleware.APIKeyMiddleware()) 
-    movieGroup.Use(middleware.RateLimitMiddleware())
+	movieGroup.Use(middleware.RateLimitMiddleware())
 	{
 		movieGroup.GET("/", controllers.GetMovies)
 		movieGroup.GET("/:id", controllers.GetMovieByID)
 		movieGroup.GET("/genre/:genre", controllers.GetMoviesByGenre)
+	}
+
+	// ==========================================
+	// 🌟 กลุ่มที่ 2: เส้นทาง VIP สำหรับหน้าเว็บ Movie Explorer ของเราเอง (ไม่โดนจำกัดโควต้า)
+	// ==========================================
+	explorerGroup := r.Group("/api/explorer/movies")
+	explorerGroup.Use(middleware.AuthMiddleware()) 
+	{
+		explorerGroup.GET("/", controllers.GetMovies)
+		explorerGroup.GET("/:id", controllers.GetMovieByID)
+		explorerGroup.GET("/genre/:genre", controllers.GetMoviesByGenre)
 	}
 
 	userGroup := r.Group("/api/user")
@@ -37,7 +51,7 @@ func SetupRouter() *gin.Engine {
 	keyGroup := r.Group("/api/key")
 	keyGroup.Use(middleware.AuthMiddleware()) 
 	{
-		keyGroup.GET("/", controllers.GetKeyDetails)         
+		keyGroup.GET("/", controllers.GetKeyDetails)        
 		keyGroup.POST("/regenerate", controllers.RegenerateKey) 
 		keyGroup.POST("/revoke", controllers.RevokeKey)        
 	}
@@ -55,7 +69,7 @@ func SetupRouter() *gin.Engine {
 		subGroup.POST("/upgrade", controllers.UpgradeSubscription)
 	}
 	
-adminGroup := r.Group("/api/admin")
+	adminGroup := r.Group("/api/admin")
 	adminGroup.Use(middleware.AuthMiddleware(), middleware.RequireAdmin())
 	{
 		adminGroup.GET("/users", controllers.GetAllUsers)

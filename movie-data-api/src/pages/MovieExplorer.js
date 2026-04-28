@@ -113,7 +113,7 @@ export default function MovieExplorer() {
   const hasAdvancedTools = plan === "medium" || plan === "premium";
   const canFilterByGenre = hasAdvancedTools;
 
-  useEffect(() => {
+useEffect(() => {
     let isMounted = true;
 
     const fetchMovies = async () => {
@@ -127,24 +127,13 @@ export default function MovieExplorer() {
         setLoading(true);
         setLoadError("");
 
-        const keyRes = await fetch("/api/key/", {
+        // 🌟 [ลบออก] ส่วนที่เคย fetch("/api/key/") เราลบทิ้งได้เลย ไม่ต้องใช้แล้ว!
+
+        // 🌟 [แก้ไข 1] เปลี่ยน URL ไปยิงเส้น VIP ที่เราเพิ่งสร้าง
+        const moviesRes = await fetch("/api/explorer/movies/", {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!keyRes.ok) {
-          throw new Error("Failed to load API key");
-        }
-
-        const keyData = await keyRes.json();
-        if (!keyData.api_key || keyData.api_key === "REVOKED") {
-          throw new Error("API key is unavailable");
-        }
-
-        const moviesRes = await fetch("/api/movies/", {
-          headers: {
-            "x-api-key": keyData.api_key,
+            // 🌟 [แก้ไข 2] เปลี่ยนมาส่งแค่ Token ก็พอ (ไม่ต้องใช้ x-api-key)
+            "Authorization": `Bearer ${token}`, 
           },
         });
 
@@ -153,7 +142,8 @@ export default function MovieExplorer() {
         }
 
         const movieData = await moviesRes.json();
-        const mappedMovies = (movieData.data || []).map(mapBackendMovie);
+        // รองรับกรณีที่ backend ส่งมาเป็น array ตรงๆ หรือส่งมาในคีย์ data
+        const mappedMovies = (movieData.data || movieData || []).map(mapBackendMovie);
 
         if (isMounted) {
           setMovies(mappedMovies);
