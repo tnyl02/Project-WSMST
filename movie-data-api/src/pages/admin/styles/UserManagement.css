@@ -25,41 +25,32 @@
 
 /* ===== Search ===== */
 .um-search-box {
-  display: flex;
-  align-items: center;
-  background: #ede9fe;
-  border-radius: 999px;
-  padding: 10px 18px;
-  gap: 10px;
-  width: 320px;
+  width: min(360px, 100%);
 }
 
 .um-search-input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  font-size: 0.9rem;
-  color: #374151;
+  width: 100%;
+  height: 28px;
+  border: 1px solid #cfcfcf;
+  border-radius: 3px;
+  background: #ffffff;
+  color: #111111;
+  font: inherit;
+  font-size: 12px;
   outline: none;
+  padding: 0 14px;
 }
 
 .um-search-input::placeholder {
-  color: #a78bfa;
-}
-
-.um-search-icon-left,
-.um-search-icon-right {
-  font-size: 1rem;
-  color: #7c3aed;
-  cursor: pointer;
-  user-select: none;
+  color: #a5a5a5;
 }
 
 /* ===== Table Wrapper ===== */
 .um-table-wrapper {
   background: #fff;
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: visible;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
@@ -104,14 +95,10 @@
   vertical-align: middle;
 }
 
-/* ===== API Key ===== */
-.apikey-text {
-  font-family: monospace;
-  font-size: 0.85rem;
-  background: #f3f4f6;
-  padding: 3px 8px;
-  border-radius: 6px;
-  color: #374151;
+.um-table th:last-child,
+.um-table td:last-child {
+  width: 1%;
+  white-space: nowrap;
 }
 
 /* ===== Plan Badge ===== */
@@ -138,8 +125,8 @@
   color: #6b7280;
 }
 
-/* ===== Status Badge ===== */
-.status-badge {
+/* ===== Role Badge ===== */
+.role-badge {
   display: inline-block;
   padding: 3px 10px;
   border-radius: 999px;
@@ -147,65 +134,78 @@
   font-weight: 600;
 }
 
-.status-active {
-  background: #d1fae5;
-  color: #059669;
+.role-admin {
+  background: #ede9fe;
+  color: #7c3aed;
 }
 
-.status-limit {
-  background: #fef3c7;
-  color: #d97706;
+.role-user {
+  background: #f3f4f6;
+  color: #4b5563;
 }
 
-.status-block {
-  background: #fee2e2;
-  color: #dc2626;
+/* ===== Action Buttons ===== */
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* ===== Action Dropdown ===== */
-.action-dropdown {
+.action-popover {
   position: relative;
   display: inline-block;
+  isolation: isolate;
+}
+
+.action-popover.is-open {
+  z-index: 200;
 }
 
 .action-btn {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 4px 8px;
+  height: 28px;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
-  transition: background 0.15s;
+  background: #ffffff;
+  color: #111827;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0 10px;
+  transition: background 0.15s, opacity 0.15s;
 }
 
 .action-btn:hover {
   background: #f3f4f6;
 }
 
-.dropdown-menu {
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.action-btn-danger {
+  border-color: #fecaca;
+  color: #dc2626;
+  background: #fff5f5;
+}
+
+.action-btn-danger:hover {
+  background: #fee2e2;
+}
+
+.action-menu {
   position: absolute;
   right: 0;
-  top: calc(100% + 6px);
+  top: calc(100% + 8px);
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  z-index: 50;
+  z-index: 100;
   min-width: 140px;
   padding: 6px 0;
 }
 
-.dropdown-section-label {
-  padding: 6px 14px 2px;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #9ca3af;
-  margin: 0;
-  font-weight: 600;
-}
-
-.dropdown-item {
+.action-menu-item {
   display: block;
   width: 100%;
   padding: 8px 14px;
@@ -218,20 +218,53 @@
   transition: background 0.15s;
 }
 
-.dropdown-item:hover {
+.action-menu-item:hover {
   background: #f9fafb;
 }
 
-.dropdown-item.active {
+.action-menu-item.active {
   background: #ede9fe;
   color: #7c3aed;
   font-weight: 600;
 }
 
-.dropdown-divider {
-  border: none;
-  border-top: 1px solid #f3f4f6;
-  margin: 6px 0;
+.um-success-msg,
+.um-error-msg,
+.um-loading {
+  margin-bottom: 16px;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.9rem;
+}
+
+.um-success-msg {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.um-error-msg {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.um-error-msg button {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #b91c1c;
+  cursor: pointer;
+}
+
+.um-loading {
+  background: #ffffff;
+  color: #6b7280;
+  text-align: center;
 }
 
 /* ===== Empty ===== */
@@ -240,4 +273,10 @@
   color: #9ca3af;
   padding: 40px 0;
   font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .um-search-box {
+    width: 100%;
+  }
 }

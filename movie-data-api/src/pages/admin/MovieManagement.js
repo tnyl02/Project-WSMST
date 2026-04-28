@@ -56,8 +56,7 @@ const mapBackendMovie = (movie) => ({
   description: movie.description || "",
 });
 
-// ===== Delete Confirm Modal =====
-const DeleteModal = ({ movie, onConfirm, onClose }) => (
+const DeleteModal = ({ movie, onConfirm, onClose, deleting }) => (
   <>
     <div className="modal-backdrop" onClick={onClose} />
     <div className="modal-box modal-box-sm">
@@ -67,94 +66,114 @@ const DeleteModal = ({ movie, onConfirm, onClose }) => (
         This action cannot be undone.
       </p>
       <div className="modal-actions">
-        <button className="modal-btn-secondary" onClick={onClose}>
+        <button className="modal-btn-secondary" onClick={onClose} disabled={deleting}>
           Cancel
         </button>
         <button
           className="modal-btn-danger"
-          onClick={() => {
-            onConfirm(movie.id);
-            onClose();
+          onClick={async () => {
+            const success = await onConfirm(movie.id);
+            if (success) {
+              onClose();
+            }
           }}
+          disabled={deleting}
         >
-          Delete
+          {deleting ? "Deleting..." : "Delete"}
         </button>
       </div>
     </div>
   </>
 );
 
-// ===== Main =====
-export default function MoviesAdmin({ movies = [], onDelete }) {
+export default function MoviesAdmin() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [movieList, setMovieList] = useState(movies);
+  const [movieList, setMovieList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
+
+  const fetchMovies = async () => {
+    setLoading(true);
+    setLoadError("");
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Missing token");
+      }
+
+      const keyRes = await fetch("/api/key/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!keyRes.ok) {
+        throw new Error("Failed to load API key");
+      }
+
+      const keyData = await keyRes.json();
+      if (!keyData.api_key || keyData.api_key === "REVOKED") {
+        throw new Error("API key is unavailable");
+      }
+
+      const movieRes = await fetch("/api/movies/", {
+        headers: {
+          "x-api-key": keyData.api_key,
+        },
+      });
+      if (!movieRes.ok) {
+        throw new Error("Failed to load movies");
+      }
+
+      const movieData = await movieRes.json();
+      setMovieList((movieData.data || []).map(mapBackendMovie));
+    } catch (error) {
+      setMovieList([]);
+      setLoadError(error.message || "Unable to load movies from backend.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let isMounted = true;
-
-    const fetchMovies = async () => {
-      try {
-        setLoading(true);
-        setLoadError("");
-
-        const token = localStorage.getItem("token");
-        if (!token) {
-          throw new Error("Missing token");
-        }
-
-        const keyRes = await fetch("/api/key/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!keyRes.ok) {
-          throw new Error("Failed to load API key");
-        }
-
-        const keyData = await keyRes.json();
-        if (!keyData.api_key || keyData.api_key === "REVOKED") {
-          throw new Error("API key is unavailable");
-        }
-
-        const movieRes = await fetch("/api/movies/", {
-          headers: {
-            "x-api-key": keyData.api_key,
-          },
-        });
-        if (!movieRes.ok) {
-          throw new Error("Failed to load movies");
-        }
-
-        const movieData = await movieRes.json();
-        const mappedMovies = (movieData.data || []).map(mapBackendMovie);
-
-        if (isMounted) {
-          setMovieList(mappedMovies);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setMovieList(movies);
-          setLoadError(
-            "Unable to load movies from backend. Showing local data instead."
-          );
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
     fetchMovies();
+  }, []);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [movies]);
+  const handleDeleteMovie = async (id) => {
+    try {
+      setDeletingId(id);
+      setActionError("");
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Missing token");
+      }
+
+      const response = await fetch(`/api/admin/movies/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to delete movie");
+      }
+
+      setMovieList((prev) => prev.filter((movie) => movie.id !== id));
+      return true;
+    } catch (error) {
+      setActionError(error.message || "Unable to delete movie.");
+      return false;
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const filtered = movieList.filter((movie) => {
     const keyword = search.toLowerCase();
@@ -170,28 +189,36 @@ export default function MoviesAdmin({ movies = [], onDelete }) {
       {deleteTarget && (
         <DeleteModal
           movie={deleteTarget}
-          onConfirm={onDelete}
+          onConfirm={handleDeleteMovie}
           onClose={() => setDeleteTarget(null)}
+          deleting={deletingId === deleteTarget.id}
         />
       )}
 
       <div className="ma-header">
         <h1 className="ma-title">Movies</h1>
-        <div className="ma-search-box">
-          <span className="ma-search-left">Search</span>
-          <input
-            className="ma-search-input"
-            type="text"
-            placeholder="Search title, genre, language"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <span className="ma-search-right">Find</span>
+        <div className="ma-toolbar">
+          <div className="ma-search-box">
+            <input
+              className="ma-search-input"
+              type="text"
+              placeholder="Search title, genre, language"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <button
+            className="ma-add-btn"
+            onClick={() => navigate("/admin/movie-create")}
+          >
+            Add Movie
+          </button>
         </div>
       </div>
 
       {loading && <div className="ma-empty">Loading movies...</div>}
       {!loading && loadError && <div className="ma-empty">{loadError}</div>}
+      {!loading && actionError && <div className="ma-empty">{actionError}</div>}
 
       <div className="ma-table-wrapper">
         <table className="ma-table">
@@ -222,16 +249,21 @@ export default function MoviesAdmin({ movies = [], onDelete }) {
                     <div className="ma-actions">
                       <button
                         className="ma-edit-btn"
-                        onClick={() => navigate(`/admin/movie-edit/${movie.id}`)}
+                        onClick={() =>
+                          navigate(`/admin/movie-edit/${movie.id}`, {
+                            state: { movie },
+                          })
+                        }
                       >
                         Edit
                       </button>
                       <span className="ma-divider">/</span>
                       <button
                         className="ma-delete-btn"
+                        disabled={deletingId === movie.id}
                         onClick={() => setDeleteTarget(movie)}
                       >
-                        Delete
+                        {deletingId === movie.id ? "Deleting..." : "Delete"}
                       </button>
                     </div>
                   </td>

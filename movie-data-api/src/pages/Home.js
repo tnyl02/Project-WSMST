@@ -62,6 +62,7 @@ const Home = () => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   const [currentPlan, setCurrentPlan] = useState(null);
 
+<<<<<<< HEAD
   const API_TO_PLAN_ID = { free: 'starter', medium: 'developer', premium: 'enterprise' };
 
   useEffect(() => {
@@ -82,6 +83,50 @@ const Home = () => {
       navigate('/subscription');
     } else {
       navigate('/login');
+=======
+  const pricingPlans = [
+    {
+      title: "Starter",
+      price: "0",
+      features: [
+        "1,000 requests/month",
+        "Rate limit: 10 req/min",
+        "Basic search (title only)",
+        "Data: title, year, genre, runtime (no synopsis or images)",
+        "Export: not available",
+        "Support: community forum"
+      ],
+      buttonText: "Get started"
+    },
+    {
+      badge: "Medium",
+      title: "Developer",
+      price: "299",
+      features: [
+        "50,000 requests/month",
+        "Rate limit: 50 req/min",
+        "Search: advanced (filter by genre, year, sort)",
+        "Data: full (includes synopsis & image URL)",
+        "Export: not available",
+        "Support: email (reply within 24h)"
+      ],
+      buttonText: "Subscribe to Developer"
+    },
+    {
+      badge: "Premium",
+      title: "Enterprise",
+      price: "990",
+      features: [
+        "Requests: unlimited",
+        "Rate limit: 100 req/min",
+        "Search: full-text (incl. synopsis)",
+        "Data: full (synopsis & image URL)",
+        "Export: bulk up to 1,000 titles/call",
+        "Support: 24/7 priority consultant"
+      ],
+      buttonText: "Contact Enterprise sales",
+      isPrimary: false
+>>>>>>> a9e390118619b5a6e21a5820d864f362cccbc09c
     }
   };
 

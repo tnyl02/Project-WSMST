@@ -59,6 +59,12 @@ func RateLimitMiddleware() gin.HandlerFunc {
 		}
 
 		// 5. ถ้ายังไม่เกิน ให้บันทึกประวัติการใช้งาน
+		// ข้าม log ถ้าเป็น request จาก UI ภายใน
+		if c.GetHeader("x-internal-client") == "true" {
+			c.Next()
+			return
+		}
+
 		insertQuery := `INSERT INTO usage_logs (api_key_id, endpoint) VALUES ($1, $2)`
 		_, err = config.DB.Exec(context.Background(), insertQuery, apiKeyID, c.Request.URL.Path)
 		if err != nil {
