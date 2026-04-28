@@ -287,7 +287,7 @@ export default function UsersManagement() {
           <table className="um-table">
             <thead>
               <tr>
-                <th>ID</th>
+                {/* <th>ID</th> */}
                 <th>User Name</th>
                 <th>Email</th>
                 <th>Plan</th>
@@ -299,7 +299,7 @@ export default function UsersManagement() {
               {filtered.length > 0 ? (
                 filtered.map((user) => (
                   <tr key={user.id}>
-                    <td>{user.id}</td>
+                    {/* <td>{user.id}</td> */}
                     <td>{user.username}</td>
                     <td>{user.email}</td>
                     <td>
