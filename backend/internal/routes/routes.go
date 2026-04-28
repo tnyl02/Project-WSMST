@@ -55,14 +55,19 @@ func SetupRouter() *gin.Engine {
 		subGroup.POST("/upgrade", controllers.UpgradeSubscription)
 	}
 	
-	adminGroup := r.Group("/api/admin")
+adminGroup := r.Group("/api/admin")
 	adminGroup.Use(middleware.AuthMiddleware(), middleware.RequireAdmin())
 	{
-		adminGroup.GET("/test", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"message": "ยินดีต้อนรับท่าน Admin! ระบบตรวจพบสิทธิ์ของคุณเรียบร้อยแล้ว",
-			})
-		})
+		adminGroup.GET("/users", controllers.GetAllUsers)
+		adminGroup.PUT("/users/:id/role", controllers.UpdateUserRole)
+		adminGroup.PUT("/users/:id/plan", controllers.UpdateUserPlan)
+		adminGroup.DELETE("/users/:id", controllers.DeleteUser)
+		
+		adminGroup.POST("/movies", controllers.CreateMovie)
+		adminGroup.PUT("/movies/:id", controllers.UpdateMovie)
+		adminGroup.DELETE("/movies/:id", controllers.DeleteMovie)
+
+		adminGroup.GET("/dashboard/stats", controllers.GetAdminSystemStats)
 	}
 
 	return r

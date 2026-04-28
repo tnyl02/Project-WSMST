@@ -115,7 +115,7 @@ func Login(c *gin.Context) {
 
 //update
 type UpdateProfileInput struct {
-	//Username string `json:"username"`
+	Username string `json:"username"`
 	Password string `json:"password" binding:"required,min=4"`
 }
 
@@ -141,26 +141,49 @@ func GetProfile(c *gin.Context) {
 	})
 }
 
+// PUT /api/user/profile
 func UpdateProfile(c *gin.Context) {
-	userID, _ := c.Get("user_id") 
-	
-	var input UpdateProfileInput
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "ไม่พบข้อมูลผู้ใช้งาน"})
+		return
+	}
+
+	var input struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "กรุณากรอกรหัสผ่านใหม่ (ขั้นต่ำ 4 ตัวอักษร)"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "รูปแบบข้อมูลไม่ถูกต้อง"})
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), 10)
+	if input.Username == "" && input.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "กรุณาส่ง username หรือ password ที่ต้องการแก้ไข"})
+		return
+	}
+
+	var err error
+	if input.Username != "" && input.Password != "" {
+		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(input.Password), 10)
+		_, err = config.DB.Exec(context.Background(), "UPDATE users SET username=$1, password_hash=$2 WHERE id=$3", input.Username, string(hashedPassword), userID)
+		
+	} else if input.Username != "" {
+		_, err = config.DB.Exec(context.Background(), "UPDATE users SET username=$1 WHERE id=$2", input.Username, userID)
+		
+	} else if input.Password != "" {
+		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(input.Password), 10)
+		_, err = config.DB.Exec(context.Background(), "UPDATE users SET password_hash=$1 WHERE id=$2", string(hashedPassword), userID)
+	}
+
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "เกิดข้อผิดพลาดในการเข้ารหัส"})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "อัปเดตโปรไฟล์ไม่สำเร็จ", 
+			"details": err.Error(),
+		})
 		return
 	}
 
-	_, err = config.DB.Exec(context.Background(), "UPDATE users SET password_hash = $1 WHERE id = $2", string(hashedPassword), userID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "เปลี่ยนรหัสผ่านไม่สำเร็จ"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "เปลี่ยนรหัสผ่านสำเร็จ"})
+	c.JSON(http.StatusOK, gin.H{"message": "อัปเดตข้อมูลโปรไฟล์สำเร็จเรียบร้อย!"})
 }
