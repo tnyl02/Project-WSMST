@@ -1,76 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import PricingCard from '../components/pricing/PricingCard';
 import { pricingPlans } from '../data/plans';
+import '../styles/Home.css';
 import '../styles/Subscription.css';
 
+const PLAN_ID_TO_API = { starter: 'free', developer: 'medium', enterprise: 'premium' };
+const API_TO_PLAN_ID = { free: 'starter', medium: 'developer', premium: 'enterprise' };
 
-// map plan id ของ frontend → ชื่อที่ backend รับ
-const PLAN_ID_TO_API = {
-  starter:    'free',
-  developer:  'medium',
-  enterprise: 'premium',
-};
-
-// map plan ที่ backend ส่งกลับ → plan id ของ frontend
-const API_TO_PLAN_ID = {
-  free:    'starter',
-  medium:  'developer',
-  premium: 'enterprise',
-};
+const CheckIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0, marginTop: 2 }}>
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
 
 const Subscription = ({ setCurrentPlan }) => {
   const [currentPlan, setLocalPlan] = useState(null);
-  const [loading, setLoading]       = useState(true);
-  const [upgrading, setUpgrading]   = useState(null); // plan id ที่กำลัง upgrade
+  const [loading, setLoading] = useState(true);
+  const [upgrading, setUpgrading] = useState(null);
 
   const authHeader = () => ({
     Authorization: `Bearer ${localStorage.getItem('token')}`,
     'Content-Type': 'application/json',
   });
 
-  // โหลด plan ปัจจุบันจาก profile
   useEffect(() => {
     const fetchPlan = async () => {
       try {
-        const res = await fetch(`/api/user/profile`, {
-          headers: authHeader(),
-        });
+        const res = await fetch('/api/user/profile', { headers: authHeader() });
         if (!res.ok) throw new Error();
         const data = await res.json();
         const planId = API_TO_PLAN_ID[data.plan] || 'starter';
         setLocalPlan(planId);
         setCurrentPlan?.(planId);
       } catch {
-        // fallback จาก localStorage ถ้า fetch ไม่ได้
         setLocalPlan(localStorage.getItem('currentPlan') || 'starter');
       } finally {
         setLoading(false);
       }
     };
-
     fetchPlan();
   }, []);
 
   const handleUpgrade = async (planId) => {
     const apiPlan = PLAN_ID_TO_API[planId];
     setUpgrading(planId);
-
     try {
-      const res = await fetch(`/api/subscription/upgrade`, {
+      const res = await fetch('/api/subscription/upgrade', {
         method: 'POST',
         headers: authHeader(),
         body: JSON.stringify({ plan: apiPlan }),
       });
-
       if (!res.ok) throw new Error();
       const data = await res.json();
-
       const newPlanId = API_TO_PLAN_ID[data.current_plan] || planId;
       setLocalPlan(newPlanId);
       setCurrentPlan?.(newPlanId);
       localStorage.setItem('currentPlan', newPlanId);
       localStorage.setItem('plan', data.current_plan);
-
       toast.success(`Successfully upgraded to ${data.current_plan}!`);
     } catch {
       toast.error('Package change failed. Please try again.');
@@ -92,41 +79,20 @@ const Subscription = ({ setCurrentPlan }) => {
       <h1 className="page-title">Subscription</h1>
       <p className="page-sub">Choose the plan that fits your needs.</p>
 
-      <div className="plans-grid">
-        {pricingPlans.map(plan => {
-          const isCurrent   = currentPlan === plan.id;
+      <div className="pricing-grid">
+        {pricingPlans.map((plan) => {
+          const isCurrent = currentPlan === plan.id;
           const isUpgrading = upgrading === plan.id;
+       
 
           return (
-            <div key={plan.id} className={`plan-card ${isCurrent ? 'plan-current' : ''}`}>
-              {plan.badge && (
-                <span className={`plan-badge badge-${plan.id}`}>{plan.badge}</span>
-              )}
-              <p className="plan-name">{plan.title}</p>
-              <div className="plan-price">
-                <span className="price-amount">฿{plan.price}</span>
-                <span className="price-period">/ month</span>
-              </div>
-              <ul className="plan-features">
-                {plan.features.map((f, i) => (
-                  <li key={i}>
-                    <span className="check-icon">✓</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              {isCurrent ? (
-                <div className="current-label">Current plan</div>
-              ) : (
-                <button
-                  className="btn-upgrade"
-                  onClick={() => handleUpgrade(plan.id)}
-                  disabled={!!upgrading}
-                >
-                  {isUpgrading ? 'Upgrading...' : plan.buttonText}
-                </button>
-              )}
-            </div>
+            <PricingCard
+  key={plan.id}
+  plan={plan}
+  isCurrent={isCurrent}
+  loading={isUpgrading}
+  onClick={() => handleUpgrade(plan.id)}
+/>
           );
         })}
       </div>

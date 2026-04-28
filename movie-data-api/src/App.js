@@ -21,8 +21,6 @@ import UserManagement from './pages/admin/UserManagement';
 import MovieManagement from './pages/admin/MovieManagement';
 import MovieEdit from './pages/admin/MovieEdit';
 
-import { INITIAL_MOVIES } from './data/movies';   // ← import จาก data/
-
 import './App.css'; 
 
 function App() {
@@ -38,19 +36,6 @@ function App() {
   const [currentPlan, setCurrentPlan] = useState(() => {
     return localStorage.getItem('currentPlan') || 'starter';
   });
-
-  // ===== Movie State =====
-  const [movies, setMovies] = useState(INITIAL_MOVIES);  // ← ใช้จาก data/
-
-  const handleSaveMovie = (updated) => {
-    setMovies((prev) =>
-      prev.map((m) => (m.id === updated.id ? updated : m))
-    );
-  };
-
-  const handleDeleteMovie = (id) => {
-    setMovies((prev) => prev.filter((m) => m.id !== id));
-  };
 
   return (
     <Router>
@@ -83,29 +68,11 @@ function App() {
               <Route path="/admin/user-management"
                 element={<AdminRoute><UserManagement /></AdminRoute>}
               />
-
-              {/* Movie Management */}
               <Route path="/admin/movie-management"
-                element={
-                  <AdminRoute>
-                    <MovieManagement
-                      movies={movies}
-                      onDelete={handleDeleteMovie}
-                    />
-                  </AdminRoute>
-                }
+                element={<AdminRoute><MovieManagement /></AdminRoute>}
               />
-
-              {/* Movie Edit */}
               <Route path="/admin/movie-edit/:id"
-                element={
-                  <AdminRoute>
-                    <MovieEdit
-                      movies={movies}
-                      onSave={handleSaveMovie}
-                    />
-                  </AdminRoute>
-                }
+                element={<AdminRoute><MovieEdit /></AdminRoute>}
               />
 
             </Routes>

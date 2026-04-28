@@ -2,21 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import '../styles/AdminDashboard.css';
 
-
-// TODO: ต้องเพิ่ม admin endpoint ใน backend ถึงจะดึงข้อมูลจริงได้
-// เช่น GET /api/admin/stats → { total_users, requests_today, top_users, plan_breakdown }
-const MOCK_TOP_USERS = [
-  { rank: 1, name: 'JohnDoe',    key: 'mov_a1b2c3', plan: 'Premium', requests: 1240, status: 'Active' },
-  { rank: 2, name: 'FilmMaster', key: 'mov_d4e5f6', plan: 'Premium', requests: 980,  status: 'Active' },
-  { rank: 3, name: 'CineFan99',  key: 'mov_g7h8i9', plan: 'Medium',  requests: 300,  status: 'Active' },
-  { rank: 4, name: 'MovieBuff',  key: 'mov_j1k2l3', plan: 'Medium',  requests: 250,  status: 'Active' },
-  { rank: 5, name: 'TestUser',   key: 'mov_m4n5o6', plan: 'Free',    requests: 100,  status: 'Limit'  },
-];
-
-const MOCK_PLAN_DATA = { Free: 60, Medium: 32, Premium: 8 };
-
-const planBadge   = { Premium: 'adm-badge-premium', Medium: 'adm-badge-medium', Free: 'adm-badge-free' };
-const statusBadge = { Active: 'adm-badge-active', Limit: 'adm-badge-limit' };
+const planBadge   = { premium: 'adm-badge-premium', medium: 'adm-badge-medium', free: 'adm-badge-free' };
+const statusBadge = { active: 'adm-badge-active', limit: 'adm-badge-limit', block: 'adm-badge-limit' };
 
 const AdminDashboard = () => {
   const lineRef    = useRef(null);
@@ -24,32 +11,45 @@ const AdminDashboard = () => {
   const lineChart  = useRef(null);
   const donutChart = useRef(null);
 
-  // ข้อมูลจริงจาก backend (/api/dashboard/stats)
-  const [stats, setStats] = useState(null);
+  const [stats, setStats]      = useState(null); // /api/dashboard/stats (graph)
+  const [adminStats, setAdminStats] = useState(null); // /api/admin/dashboard/stats
+  const [topUsers, setTopUsers] = useState([]);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`/api/dashboard/stats`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error('fetch failed');
-        const data = await res.json();
-        setStats(data);
-      } catch (err) {
-        console.error('AdminDashboard fetch error:', err);
-      }
-    };
+    const token = localStorage.getItem('token');
+    const headers = { Authorization: `Bearer ${token}` };
 
-    fetchStats();
+    // graph data (user's own — ใช้ชั่วคราวจนกว่าจะมี admin graph)
+    fetch('/api/dashboard/stats', { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setStats(data); })
+      .catch(err => console.error('dashboard/stats:', err));
+
+    // admin stats: total_users, total_movies, total_requests_today
+    fetch('/api/admin/dashboard/stats', { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setAdminStats(data); })
+      .catch(err => console.error('admin/dashboard/stats:', err));
+
+    // top users from /api/admin/users (sort by requests desc, take 5)
+    fetch('/api/admin/users', { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.users) {
+          const sorted = [...data.users]
+            .sort((a, b) => (b.requests ?? 0) - (a.requests ?? 0))
+            .slice(0, 5)
+            .map((u, i) => ({ ...u, rank: i + 1 }));
+          setTopUsers(sorted);
+        }
+      })
+      .catch(err => console.error('admin/users:', err));
   }, []);
 
-  // สร้าง chart เมื่อได้ stats จาก API แล้ว
+  // สร้าง chart เมื่อได้ข้อมูล
   useEffect(() => {
     if (!stats) return;
 
-    // graph_data จาก backend: [{ date: "2026-04-20", count: 320 }, ...]
     const graphLabels = stats.graph_data.map(d =>
       new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     );
@@ -81,14 +81,24 @@ const AdminDashboard = () => {
       }
     });
 
-    // donut ยังใช้ mock จนกว่าจะมี admin endpoint
+    return () => lineChart.current?.destroy();
+  }, [stats]);
+
+  // donut chart — ใช้ข้อมูลจาก /api/admin/users นับแยก plan
+  useEffect(() => {
+    if (!adminStats || !donutRef.current) return;
+
+    const free    = adminStats.plan_free    ?? 0;
+    const medium  = adminStats.plan_medium  ?? 0;
+    const premium = adminStats.plan_premium ?? 0;
+
     donutChart.current?.destroy();
     donutChart.current = new Chart(donutRef.current, {
       type: 'doughnut',
       data: {
         labels: ['Free', 'Medium', 'Premium'],
         datasets: [{
-          data: [MOCK_PLAN_DATA.Free, MOCK_PLAN_DATA.Medium, MOCK_PLAN_DATA.Premium],
+          data: [free, medium, premium],
           backgroundColor: ['#888780', '#378ADD', '#534AB7'],
           borderWidth: 0,
           hoverOffset: 4,
@@ -101,11 +111,8 @@ const AdminDashboard = () => {
       }
     });
 
-    return () => {
-      lineChart.current?.destroy();
-      donutChart.current?.destroy();
-    };
-  }, [stats]);
+    return () => donutChart.current?.destroy();
+  }, [adminStats]);
 
   return (
     <div className="adm-page">
@@ -115,26 +122,24 @@ const AdminDashboard = () => {
         <div className="adm-stat-card req">
           <div className="adm-stat-label">Requests today</div>
           <div className="adm-stat-num">
-            {stats ? stats.today_usage.toLocaleString() : '—'}
+            {adminStats ? adminStats.total_requests_today.toLocaleString() : '—'}
           </div>
           <div className="adm-stat-sub">
             {stats ? `${stats.today_errors} errors (429)` : 'loading...'}
           </div>
         </div>
-        {/* TODO: ต้องมี admin endpoint ถึงจะแสดงข้อมูลจริงได้ */}
         <div className="adm-stat-card usr">
           <div className="adm-stat-label">Total users</div>
-          <div className="adm-stat-num">120</div>
-          <div className="adm-stat-sub">4 new this week</div>
+          <div className="adm-stat-num">{adminStats ? adminStats.total_users : '—'}</div>
+          <div className="adm-stat-sub">all registered users</div>
         </div>
         <div className="adm-stat-card mov">
           <div className="adm-stat-label">Movies</div>
-          <div className="adm-stat-num">97</div>
-          <div className="adm-stat-sub">Last added 2h ago</div>
+          <div className="adm-stat-num">{adminStats ? adminStats.total_movies : '—'}</div>
+          <div className="adm-stat-sub">in database</div>
         </div>
       </div>
 
-      {/* TODO: ต้องมี admin endpoint สำหรับ top users */}
       <div className="adm-panel-full">
         <p className="adm-section-label">Top 5 Users — API usage today</p>
         <table className="adm-table">
@@ -145,16 +150,18 @@ const AdminDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {MOCK_TOP_USERS.map(u => (
-              <tr key={u.rank}>
+            {topUsers.length > 0 ? topUsers.map(u => (
+              <tr key={u.id}>
                 <td className="adm-rank">{u.rank}</td>
-                <td>{u.name}</td>
-                <td className="adm-mono">{u.key}</td>
-                <td><span className={`adm-badge ${planBadge[u.plan]}`}>{u.plan}</span></td>
-                <td className="adm-mono adm-right">{u.requests.toLocaleString()}</td>
-                <td className="adm-right"><span className={`adm-badge ${statusBadge[u.status]}`}>{u.status}</span></td>
+                <td>{u.username}</td>
+                <td className="adm-mono">{u.api_key || '—'}</td>
+                <td><span className={`adm-badge ${planBadge[u.plan?.toLowerCase()] ?? ''}`}>{u.plan}</span></td>
+                <td className="adm-mono adm-right">{(u.requests ?? 0).toLocaleString()}</td>
+                <td className="adm-right"><span className={`adm-badge ${statusBadge[u.status?.toLowerCase()] ?? ''}`}>{u.status}</span></td>
               </tr>
-            ))}
+            )) : (
+              <tr><td colSpan={6} style={{ textAlign: 'center', color: '#aaa', padding: 16 }}>Loading...</td></tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -172,7 +179,11 @@ const AdminDashboard = () => {
           <div className="adm-donut-wrap">
             <canvas ref={donutRef} width="120" height="120"></canvas>
             <div className="adm-legend-list">
-              {[['#888780','Free', MOCK_PLAN_DATA.Free], ['#378ADD','Medium', MOCK_PLAN_DATA.Medium], ['#534AB7','Premium', MOCK_PLAN_DATA.Premium]].map(([c,l,v]) => (
+              {[
+                ['#888780', 'Free',    adminStats?.plan_free    ?? 0],
+                ['#378ADD', 'Medium',  adminStats?.plan_medium  ?? 0],
+                ['#534AB7', 'Premium', adminStats?.plan_premium ?? 0],
+              ].map(([c, l, v]) => (
                 <div key={l} className="adm-legend-item">
                   <span className="adm-legend-label">
                     <span className="adm-legend-dot" style={{ background: c }}></span>{l}
@@ -180,7 +191,7 @@ const AdminDashboard = () => {
                   <span className="adm-legend-val">{v}</span>
                 </div>
               ))}
-              <div className="adm-total-line">Total <span>1,000</span></div>
+              <div className="adm-total-line">Total <span>{adminStats ? adminStats.total_users : '—'}</span></div>
             </div>
           </div>
         </div>
