@@ -34,7 +34,7 @@ const UsageChart = ({ chartData = [] }) => {
                 className="bar"
                 style={{
                   height: `${barHeight}px`,
-                  background: day.count > 0 ? '#6c63ff' : '#e0e0e0',
+                  background: day.count > 0 ? '#000000' : '#e0e0e0',
                   transition: 'height 0.4s ease',
                 }}
               />

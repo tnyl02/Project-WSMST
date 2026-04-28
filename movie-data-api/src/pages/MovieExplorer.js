@@ -298,12 +298,6 @@ useEffect(() => {
     setQuery(event.target.value);
   };
 
-  const handleReset = () => {
-    setQuery("");
-    setGenre("all");
-    setSort("default");
-    setSelectedMovie(null);
-  };
 
   const secondsUntilReset = Math.max(0, Math.ceil(timeLeftMs / 1000));
   const resetTimeLabel = formatResetTime(resetAt);
@@ -368,9 +362,7 @@ useEffect(() => {
           )}
         </div>
 
-        <button className="toolbar-reset" onClick={handleReset}>
-          Clear
-        </button>
+        
       </section>
 
       {loading ? (

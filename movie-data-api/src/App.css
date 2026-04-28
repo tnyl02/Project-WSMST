@@ -47,18 +47,26 @@
   display: flex; /* ทำให้ Sidebar กับ Content เรียงซ้ายขวา */
   flex: 1;       /* ยืดความสูงให้เต็มที่ที่เหลือจาก Navbar */
   align-items: flex-start;
-  background-color: #f3f4f6;
+  background-color: #fefefe;
 }
+
+
 
 .content-area {
   flex: 1;
   padding: 20px;
-  background-color: #f3f4f6;
+  background-color: #fefefe;
 
 }
 
 /* Home page ไม่มี padding และ background ขาว */
 .content-area.home-page {
   padding: 0;
-  background-color: #e5e5e5;
+  background-color: #ffffff;
+}
+
+/* ApiDocs page — ไม่มี padding และ background ขาว เพื่อให้ sidebar ติดขอบ */
+.content-area.docs-page {
+  padding: 0;
+  background-color: #ffffff;
 }

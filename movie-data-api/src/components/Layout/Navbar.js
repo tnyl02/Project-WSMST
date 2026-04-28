@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import logoImg from '../../assets/logo.png';
 import '../../styles/Navbar.css';
 
 const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
@@ -33,7 +34,9 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
     <nav className="navbar">
       <div className="navbar-container">
         <div className="logo-section">
-          <Link to="/" className="logo">LOGO</Link>
+          <Link to="/" className="logo">
+            <img src={logoImg} alt="Movie API Logo" style={{ height: '65px', marginLeft: '-140px' }} />
+          </Link>
           {role === 'admin' && <span className="admin-badge">Admin</span>}
           <div className="divider"></div>
         </div>

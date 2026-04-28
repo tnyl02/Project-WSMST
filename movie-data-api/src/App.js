@@ -26,6 +26,7 @@ import './App.css';
 function AppLayout({ isLoggedIn, handleLogin, currentPlan, setCurrentPlan }) {
   const location = useLocation();
   const isHome = location.pathname === '/';
+  const isDocs = location.pathname === '/docs';
 
   return (
     <div className="app-container">
@@ -33,7 +34,7 @@ function AppLayout({ isLoggedIn, handleLogin, currentPlan, setCurrentPlan }) {
       <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={handleLogin} currentPlan={currentPlan} />
       <div className="main-layout">
         {isLoggedIn && <Sidebar />}
-        <main className={`content-area ${!isLoggedIn ? 'full-width' : ''} ${isHome ? 'home-page' : ''}`}>
+        <main className={`content-area ${!isLoggedIn ? 'full-width' : ''} ${isHome ? 'home-page' : ''} ${isDocs ? 'docs-page' : ''}`}>
           <Routes>
             <Route path="/"         element={<Home />} />
             <Route path="/login"    element={<Login setIsLoggedIn={handleLogin} />} />

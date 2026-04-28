@@ -12,17 +12,38 @@
 }
 
 .navbar-container {
-  width: 90%;
+  width: 100%;
   max-width: 1200px;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
+  padding: 0;
+}
+.logo-section {
+  display: flex;
+  align-items: center;  /* จัดให้ logo, badge, divider อยู่กึ่งกลางแนวตั้งร่วมกัน */
+  gap: 15px;            /* ระยะห่างระหว่าง logo กับ badge */
+  margin-right: auto;   /* ผลักทุกอย่างที่อยู่ทางขวาของ section นี้ออกไปให้สุด */
 }
 
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.nav-menu {
+  justify-self: center;
+}
+
+.auth-section {
+  justify-self: end;
+}
 /* Logo Section */
 .logo-section {
   display: flex;
   align-items: center;
+  
 }
 
 .logo {
@@ -33,18 +54,13 @@
   color: #000;
 }
 
-.divider {
-  width: 1px;
-  height: 30px;
-  background-color: #ccc;
-  margin-left: 20px;
-}
 
 /* Nav Menu */
 .nav-menu {
   display: flex;
   list-style: none;
   gap: 30px;
+  justify-self: center;
 }
 
 .nav-menu a {
