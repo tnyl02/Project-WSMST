@@ -1,118 +1,168 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import './styles/UserManagement.css';
+import "./styles/UserManagement.css";
 
-const PLAN_OPTIONS   = ["premium", "medium", "free"];
-const STATUS_OPTIONS = ["active", "limit", "block"];
+const PLAN_OPTIONS = ["premium", "medium", "free"];
+const ROLE_OPTIONS = ["user", "admin"];
 
-// ===== Plan Badge =====
 const PlanBadge = ({ plan }) => (
   <span className={`plan-badge plan-${plan?.toLowerCase()}`}>
     {plan?.charAt(0).toUpperCase() + plan?.slice(1)}
   </span>
 );
 
-// ===== Status Badge =====
-const StatusBadge = ({ status }) => (
-  <span className={`status-badge status-${status?.toLowerCase()}`}>
-    {status?.charAt(0).toUpperCase() + status?.slice(1)}
+const RoleBadge = ({ role }) => (
+  <span className={`role-badge role-${role?.toLowerCase()}`}>
+    {role?.charAt(0).toUpperCase() + role?.slice(1)}
   </span>
 );
 
-// ===== Action Dropdown =====
-const ActionDropdown = ({ userId, currentPlan, currentStatus, onUpdate }) => {
-  const [open, setOpen] = useState(false);
+const ActionButtons = ({
+  user,
+  onUpdatePlan,
+  onUpdateRole,
+  onDelete,
+  pendingAction,
+}) => {
+  const [openMenu, setOpenMenu] = useState(null);
   const ref = useRef(null);
+  const isPending = pendingAction?.userId === user.id;
 
   useEffect(() => {
-    const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    const handler = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) {
+        setOpenMenu(null);
+      }
     };
+
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      `Delete user "${user.username}"? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+    await onDelete(user.id);
+    setOpenMenu(null);
+  };
+
   return (
-    <div className="action-dropdown" ref={ref}>
-      <button className="action-btn" onClick={() => setOpen((p) => !p)}>
-        ⚙️
+    <div className="action-buttons" ref={ref}>
+      <div className={`action-popover ${openMenu === "plan" ? "is-open" : ""}`}>
+        <button
+          className="action-btn"
+          type="button"
+          disabled={isPending}
+          onClick={() => setOpenMenu((current) => (current === "plan" ? null : "plan"))}
+        >
+          Plan
+        </button>
+        {openMenu === "plan" && (
+          <div className="action-menu">
+            {PLAN_OPTIONS.map((plan) => (
+              <button
+                key={plan}
+                type="button"
+                className={`action-menu-item ${
+                  user.plan?.toLowerCase() === plan ? "active" : ""
+                }`}
+                onClick={async () => {
+                  await onUpdatePlan(user.id, plan);
+                  setOpenMenu(null);
+                }}
+              >
+                {plan.charAt(0).toUpperCase() + plan.slice(1)}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className={`action-popover ${openMenu === "role" ? "is-open" : ""}`}>
+        <button
+          className="action-btn"
+          type="button"
+          disabled={isPending}
+          onClick={() => setOpenMenu((current) => (current === "role" ? null : "role"))}
+        >
+          Role
+        </button>
+        {openMenu === "role" && (
+          <div className="action-menu">
+            {ROLE_OPTIONS.map((role) => (
+              <button
+                key={role}
+                type="button"
+                className={`action-menu-item ${
+                  user.role?.toLowerCase() === role ? "active" : ""
+                }`}
+                onClick={async () => {
+                  await onUpdateRole(user.id, role);
+                  setOpenMenu(null);
+                }}
+              >
+                {role.charAt(0).toUpperCase() + role.slice(1)}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <button
+        className="action-btn action-btn-danger"
+        type="button"
+        disabled={isPending}
+        onClick={handleDelete}
+      >
+        Delete
       </button>
-
-      {open && (
-        <div className="dropdown-menu">
-          {/* Plan Section */}
-          <p className="dropdown-section-label">Plan</p>
-          {PLAN_OPTIONS.map((p) => (
-            <button
-              key={p}
-              className={`dropdown-item ${currentPlan?.toLowerCase() === p ? "active" : ""}`}
-              onClick={() => { onUpdate(userId, "plan", p); setOpen(false); }}
-            >
-              {p.charAt(0).toUpperCase() + p.slice(1)}
-            </button>
-          ))}
-
-          <div className="dropdown-divider" />
-
-          {/* Status Section */}
-          <p className="dropdown-section-label">Status</p>
-          {STATUS_OPTIONS.map((s) => (
-            <button
-              key={s}
-              className={`dropdown-item ${currentStatus?.toLowerCase() === s ? "active" : ""}`}
-              onClick={() => { onUpdate(userId, "status", s); setOpen(false); }}
-            >
-              {s.charAt(0).toUpperCase() + s.slice(1)}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 };
 
-// ===== Main =====
 export default function UsersManagement() {
-  const [users, setUsers]     = useState([]);
-  const [search, setSearch]   = useState("");
+  const [users, setUsers] = useState([]);
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [pendingAction, setPendingAction] = useState(null);
 
-  // ดึง Token จาก localStorage
-  const getToken = () => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      const user = JSON.parse(userData);
-      return user.token || null;
-    }
-    return null;
+  const getToken = () => localStorage.getItem("token");
+
+  const showSuccess = (message) => {
+    setSuccessMsg(message);
+    window.clearTimeout(showSuccess.timerId);
+    showSuccess.timerId = window.setTimeout(() => setSuccessMsg(""), 3000);
   };
 
-  // ===== Fetch Users =====
   const fetchUsers = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setError("");
 
     try {
       const token = getToken();
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/admin/users`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch users: ${response.status}`);
+      if (!token) {
+        throw new Error("Missing token");
       }
 
-      const data = await response.json();
-      setUsers(data);
+      const response = await fetch("/api/admin/users", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || `Failed to fetch users: ${response.status}`);
+      }
+
+      setUsers(data.users || []);
     } catch (err) {
-      setError(err.message);
+      setUsers([]);
+      setError(err.message || "Unable to load users.");
     } finally {
       setLoading(false);
     }
@@ -122,85 +172,114 @@ export default function UsersManagement() {
     fetchUsers();
   }, [fetchUsers]);
 
-  // ===== Update Plan / Status =====
-  const handleUpdate = async (userId, field, value) => {
-    // Optimistic update (อัปเดต UI ก่อน)
-    setUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, [field]: value } : u))
-    );
+  const updateUserField = async (userId, field, value) => {
+    const routeField = field === "role" ? "role" : "plan";
+    const endpoint = `/api/admin/users/${userId}/${routeField}`;
 
     try {
-      const token = getToken();
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/admin/users/${userId}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ [field]: value }),
-        }
-      );
+      setPendingAction({ userId, field });
+      setError("");
 
-      if (!response.ok) {
-        throw new Error(`Failed to update: ${response.status}`);
+      const token = getToken();
+      if (!token) {
+        throw new Error("Missing token");
       }
 
-      // แสดง Success Message
-      setSuccessMsg(`Updated ${field} successfully!`);
-      setTimeout(() => setSuccessMsg(""), 3000);
+      const response = await fetch(endpoint, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ [routeField]: value }),
+      });
 
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || `Failed to update ${field}`);
+      }
+
+      setUsers((prev) =>
+        prev.map((user) =>
+          user.id === userId ? { ...user, [field]: value } : user
+        )
+      );
+      showSuccess(`Updated ${field} successfully.`);
     } catch (err) {
-      // Rollback ถ้า error
-      setError(err.message);
-      fetchUsers();
+      setError(err.message || `Unable to update ${field}.`);
+    } finally {
+      setPendingAction(null);
     }
   };
 
-  // ===== Filter =====
-  const filtered = users.filter((u) =>
-    u.username?.toLowerCase().includes(search.toLowerCase()) ||
-    u.api_key?.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleDelete = async (userId) => {
+    try {
+      setPendingAction({ userId, field: "delete" });
+      setError("");
 
-  // ===== Render =====
+      const token = getToken();
+      if (!token) {
+        throw new Error("Missing token");
+      }
+
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete user");
+      }
+
+      setUsers((prev) => prev.filter((user) => user.id !== userId));
+      showSuccess("Deleted user successfully.");
+    } catch (err) {
+      setError(err.message || "Unable to delete user.");
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
+  const filtered = users.filter((user) => {
+    const keyword = search.toLowerCase();
+    return (
+      user.username?.toLowerCase().includes(keyword) ||
+      user.email?.toLowerCase().includes(keyword) ||
+      user.plan?.toLowerCase().includes(keyword) ||
+      user.role?.toLowerCase().includes(keyword)
+    );
+  });
+
   return (
     <div className="um-wrapper">
-
-      {/* Header */}
       <div className="um-header">
         <h1 className="um-title">Users Management</h1>
 
         <div className="um-search-box">
-          <span className="um-search-icon-left">☰</span>
           <input
             className="um-search-input"
             type="text"
-            placeholder="Search by username or API key..."
+            placeholder="Search by username, email, plan, role..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <span className="um-search-icon-right">🔍</span>
         </div>
       </div>
 
-      {/* Success Message */}
-      {successMsg && (
-        <div className="um-success-msg">
-          ✅ {successMsg}
-        </div>
-      )}
+      {successMsg && <div className="um-success-msg">{successMsg}</div>}
 
-      {/* Error Message */}
       {error && (
         <div className="um-error-msg">
-          ❌ {error}
+          <span>{error}</span>
           <button onClick={fetchUsers}>Retry</button>
         </div>
       )}
 
-      {/* Loading */}
       {loading ? (
         <div className="um-loading">Loading users...</div>
       ) : (
@@ -208,11 +287,11 @@ export default function UsersManagement() {
           <table className="um-table">
             <thead>
               <tr>
+                <th>ID</th>
                 <th>User Name</th>
-                <th>API Key</th>
+                <th>Email</th>
                 <th>Plan</th>
-                <th>Requests</th>
-                <th>Status</th>
+                <th>Role</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -220,21 +299,26 @@ export default function UsersManagement() {
               {filtered.length > 0 ? (
                 filtered.map((user) => (
                   <tr key={user.id}>
+                    <td>{user.id}</td>
                     <td>{user.username}</td>
+                    <td>{user.email}</td>
                     <td>
-                      <span className="apikey-text">
-                        {user.api_key || "—"}
-                      </span>
+                      <PlanBadge plan={user.plan} />
                     </td>
-                    <td><PlanBadge plan={user.subscription} /></td>
-                    <td>{user.total_requests?.toLocaleString() ?? 0}</td>
-                    <td><StatusBadge status={user.status} /></td>
                     <td>
-                      <ActionDropdown
-                        userId={user.id}
-                        currentPlan={user.subscription}
-                        currentStatus={user.status}
-                        onUpdate={handleUpdate}
+                      <RoleBadge role={user.role} />
+                    </td>
+                    <td>
+                      <ActionButtons
+                        user={user}
+                        onUpdatePlan={(id, value) =>
+                          updateUserField(id, "plan", value)
+                        }
+                        onUpdateRole={(id, value) =>
+                          updateUserField(id, "role", value)
+                        }
+                        onDelete={handleDelete}
+                        pendingAction={pendingAction}
                       />
                     </td>
                   </tr>
@@ -250,7 +334,6 @@ export default function UsersManagement() {
           </table>
         </div>
       )}
-
     </div>
   );
 }
