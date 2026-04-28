@@ -3,6 +3,8 @@ package middleware
 import (
 	"context"
 	"net/http"
+	"strconv"
+	"time"
 
 	"backend/internal/config"
 
@@ -11,12 +13,13 @@ import (
 
 func RateLimitMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		apiKeyIDRaw, exists := c.Get("apiKeyID")
 		userPlanRaw, planExists := c.Get("userPlan")
 
 		if !exists || !planExists {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "ข้อมูล API Key ขาดหาย"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"message": "ข้อมูล API Key ขาดหาย",
+			})
 			return
 		}
 
@@ -33,33 +36,43 @@ func RateLimitMiddleware() gin.HandlerFunc {
 			limit = 10
 		}
 
-		// 3. นับจำนวนการใช้งานใน "1 นาทีที่ผ่านมา" จาก Database
 		var count int
+		var oldestAccessedAt *time.Time
 		query := `
-			SELECT COUNT(*) 
-			FROM usage_logs 
+			SELECT COUNT(*), MIN(accessed_at)
+			FROM usage_logs
 			WHERE api_key_id = $1 AND accessed_at >= NOW() - INTERVAL '1 minute'
 		`
-		
-		err := config.DB.QueryRow(context.Background(), query, apiKeyID).Scan(&count)
+
+		err := config.DB.QueryRow(context.Background(), query, apiKeyID).Scan(&count, &oldestAccessedAt)
 		if err != nil {
-			// ถ้า Query พัง ให้ถือว่าเพิ่งใช้งาน 0 ครั้งไปก่อน เพื่อไม่ให้ระบบล่ม
-			count = 0 
+			count = 0
+			oldestAccessedAt = nil
 		}
 
-		// 4. ถ้าใช้เกินโควต้า! เตะกลับ 429
 		if count >= limit {
+			resetAt := time.Now().Add(time.Minute)
+			if oldestAccessedAt != nil {
+				resetAt = oldestAccessedAt.Add(time.Minute)
+			}
+
+			retryAfter := int(time.Until(resetAt).Seconds())
+			if retryAfter < 0 {
+				retryAfter = 0
+			}
+
+			c.Header("Retry-After", strconv.Itoa(retryAfter))
 			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
-				"success": false,
-				"message": "Rate limit exceeded. โควต้าของคุณเต็มแล้ว กรุณารอ 1 นาที",
-				"plan":    userPlan,
-				"limit":   limit,
+				"success":             false,
+				"message":             "Rate limit exceeded. โควต้าของคุณเต็มแล้ว กรุณารอ 1 นาที",
+				"plan":                userPlan,
+				"limit":               limit,
+				"reset_at":            resetAt.UTC().Format(time.RFC3339),
+				"retry_after_seconds": retryAfter,
 			})
 			return
 		}
 
-		// 5. ถ้ายังไม่เกิน ให้บันทึกประวัติการใช้งาน
-		// ข้าม log ถ้าเป็น request จาก UI ภายใน
 		if c.GetHeader("x-internal-client") == "true" {
 			c.Next()
 			return
@@ -68,11 +81,9 @@ func RateLimitMiddleware() gin.HandlerFunc {
 		insertQuery := `INSERT INTO usage_logs (api_key_id, endpoint) VALUES ($1, $2)`
 		_, err = config.DB.Exec(context.Background(), insertQuery, apiKeyID, c.Request.URL.Path)
 		if err != nil {
-			// แจ้งเตือนใน Terminal ถ้าบันทึกลง Log ไม่สำเร็จ แต่ยังให้ User ใช้งานผ่านไปได้
-			// log.Println("⚠️ ไม่สามารถบันทึก Log ได้:", err)
+			// Ignore logging failures so API traffic can continue.
 		}
 
-		// ปล่อยผ่านไปหา Controller ดึงข้อมูลหนัง
 		c.Next()
 	}
 }
