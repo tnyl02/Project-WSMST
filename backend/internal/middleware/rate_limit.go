@@ -61,6 +61,9 @@ func RateLimitMiddleware() gin.HandlerFunc {
 				retryAfter = 0
 			}
 
+			insertErrorQuery := `INSERT INTO usage_logs (api_key_id, endpoint, status_code) VALUES ($1, $2, 429)`
+			config.DB.Exec(context.Background(), insertErrorQuery, apiKeyID, c.Request.URL.Path)
+
 			c.Header("Retry-After", strconv.Itoa(retryAfter))
 			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
 				"success":             false,
@@ -78,7 +81,7 @@ func RateLimitMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		insertQuery := `INSERT INTO usage_logs (api_key_id, endpoint) VALUES ($1, $2)`
+		insertQuery := `INSERT INTO usage_logs (api_key_id, endpoint, status_code) VALUES ($1, $2, 200)`
 		_, err = config.DB.Exec(context.Background(), insertQuery, apiKeyID, c.Request.URL.Path)
 		if err != nil {
 			// Ignore logging failures so API traffic can continue.
