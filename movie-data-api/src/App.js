@@ -20,6 +20,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import MovieManagement from './pages/admin/MovieManagement';
 import MovieEdit from './pages/admin/MovieEdit';
+import AddMovie from "./pages/admin/AddMovie";
 
 import { INITIAL_MOVIES } from './data/movies';   // ← import จาก data/
 
@@ -108,6 +109,14 @@ function App() {
                 }
               />
 
+              <Route
+                path="/admin/movie-create"
+                element={
+                  <AdminRoute>
+                    <AddMovie />
+                  </AdminRoute>
+                }
+              />
             </Routes>
           </main>
         </div>
