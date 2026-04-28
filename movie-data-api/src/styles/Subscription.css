@@ -1,6 +1,7 @@
 .subscription-container {
   padding: 32px;
   max-width: 960px;
+  margin: 0 auto;
 }
 
 .page-title {
@@ -126,9 +127,3 @@
   background: #333;
 }
 
-.current-label {
-  text-align: center;
-  font-size: 13px;
-  color: #888;
-  padding: 8px 0;
-}

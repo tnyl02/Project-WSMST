@@ -7,6 +7,7 @@ const MyProfile = () => {
   const [user, setUser]             = useState(null);
   const [loading, setLoading]       = useState(true);
   const [saving, setSaving]         = useState(false);
+  const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -36,28 +37,36 @@ const MyProfile = () => {
   }, []);
 
   const handleSave = async () => {
-    if (!newPassword) {
-      toast.error('Please enter a new password');
+    if (!newUsername && !newPassword) {
+      toast.error('Please enter a new username or password');
       return;
     }
-    if (newPassword.length < 4) {
+    if (newPassword && newPassword.length < 4) {
       toast.error('Password must be at least 4 characters long');
       return;
     }
-    if (newPassword !== confirmPassword) {
+    if (newPassword && newPassword !== confirmPassword) {
       toast.error('Passwords do not match');
       return;
     }
 
     setSaving(true);
     try {
+      const body = {};
+      if (newUsername) body.username = newUsername;
+      if (newPassword) body.password = newPassword;
+
       const res = await fetch(`/api/user/profile`, {
         method: 'PUT',
         headers: authHeader(),
-        body: JSON.stringify({ password: newPassword }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error();
-      toast.success('Password changed successfully.');
+
+      // อัปเดต UI ทันที
+      if (newUsername) setUser(prev => ({ ...prev, username: newUsername }));
+      toast.success('Profile updated successfully.');
+      setNewUsername('');
       setNewPassword('');
       setConfirmPassword('');
     } catch {
@@ -95,9 +104,13 @@ const MyProfile = () => {
       <div className="profile-fields">
         <div className="field-group">
           <label>Username</label>
-          <div className="field-display readonly">
-            <span>{user?.username}</span>
-          </div>
+          <input
+            className="field-input"
+            type="text"
+            placeholder={user?.username}
+            value={newUsername}
+            onChange={(e) => setNewUsername(e.target.value)}
+          />
         </div>
 
         <div className="field-group">
