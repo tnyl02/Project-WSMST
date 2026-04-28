@@ -18,7 +18,7 @@ func GetDashboardStats(c *gin.Context) {
 		SELECT COUNT(*) 
 		FROM usage_logs ul
 		JOIN api_keys ak ON ul.api_key_id = ak.id
-		WHERE ak.user_id = $1 AND DATE(ul.accessed_at) = CURRENT_DATE AND ul.status_code = 200`
+		WHERE ak.user_id = $1 AND DATE(ul.accessed_at) = CURRENT_DATE`
 	config.DB.QueryRow(context.Background(), queryUsage, userID).Scan(&todayUsage)
 
 	var todayErrors int
@@ -28,6 +28,22 @@ func GetDashboardStats(c *gin.Context) {
 		JOIN api_keys ak ON ul.api_key_id = ak.id
 		WHERE ak.user_id = $1 AND DATE(ul.accessed_at) = CURRENT_DATE AND ul.status_code = 429`
 	config.DB.QueryRow(context.Background(), queryErrors, userID).Scan(&todayErrors)
+
+	var monthlyUsage int
+	queryMonthly := `
+		SELECT COUNT(*) 
+		FROM usage_logs ul
+		JOIN api_keys ak ON ul.api_key_id = ak.id
+		WHERE ak.user_id = $1 AND date_trunc('month', ul.accessed_at) = date_trunc('month', CURRENT_DATE)`
+	config.DB.QueryRow(context.Background(), queryMonthly, userID).Scan(&monthlyUsage)
+
+	var minuteUsage int
+	queryMinute := `
+		SELECT COUNT(*) 
+		FROM usage_logs ul
+		JOIN api_keys ak ON ul.api_key_id = ak.id
+		WHERE ak.user_id = $1 AND ul.accessed_at >= NOW() - INTERVAL '1 minute'`
+	config.DB.QueryRow(context.Background(), queryMinute, userID).Scan(&minuteUsage)
 
 	queryGraph := `
 		SELECT DATE(ul.accessed_at) as date, COUNT(*) as count 
@@ -61,10 +77,13 @@ func GetDashboardStats(c *gin.Context) {
 		graphData = []map[string]interface{}{}
 	}
 
+	// 🌟 6. ส่งข้อมูลทั้งหมดกลับไปให้ Frontend
 	c.JSON(http.StatusOK, gin.H{
-		"today_usage":  todayUsage,
-		"today_errors": todayErrors,
-		"graph_data":   graphData,
+		"today_usage":   todayUsage,
+		"today_errors":  todayErrors,
+		"monthly_usage": monthlyUsage, // ส่งค่ารายเดือนไปให้
+		"minute_usage":  minuteUsage,  // ส่งค่ารายนาทีไปให้
+		"graph_data":    graphData,
 	})
 }
 
