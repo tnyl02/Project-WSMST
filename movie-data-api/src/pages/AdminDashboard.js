@@ -110,7 +110,7 @@ const AdminDashboard = () => {
         datasets: [
           {
             data: [planCounts.free, planCounts.medium, planCounts.premium],
-            backgroundColor: ["#888780", "#378ADD", "#534AB7"],
+            backgroundColor: ["#cbccce", "#598eff", "#ffb055"],
             borderWidth: 0,
             hoverOffset: 4,
           },
@@ -221,9 +221,10 @@ const AdminDashboard = () => {
             <canvas ref={planChartRef} width="168" height="168"></canvas>
             <div className="adm-legend-list">
               {[
-                ["#888780", "Free", planCounts.free],
-                ["#378ADD", "Medium", planCounts.medium],
-                ["#534AB7", "Premium", planCounts.premium],
+                ["#cbccce", "Free", planCounts.free],
+                ["#598eff", "Medium", planCounts.medium],
+                ["#ffb055", "Premium", planCounts.premium],
+
               ].map(([color, label, value]) => (
                 <div key={label} className="adm-legend-item">
                   <span className="adm-legend-label">
