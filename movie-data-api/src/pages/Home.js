@@ -61,7 +61,8 @@ const Home = () => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   const [currentPlan, setCurrentPlan] = useState(null);
 
-  const API_TO_PLAN_ID = { free: 'starter', medium: 'developer', premium: 'enterprise' };
+  const API_TO_PLAN_ID = { free: 'free', medium: 'medium', premium: 'premium' };
+
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -71,7 +72,8 @@ const Home = () => {
     })
       .then(r => r.ok ? r.json() : null)
       .then(data => {
-        if (data?.plan) setCurrentPlan(API_TO_PLAN_ID[data.plan] || 'starter');
+        if (data?.plan) setCurrentPlan(API_TO_PLAN_ID[data.plan] || 'free');
+
       })
       .catch(() => {});
   }, [isLoggedIn]);
@@ -130,7 +132,7 @@ const Home = () => {
         <div className="pricing-grid">
           {pricingPlans.map((plan) => {
             const isCurrent = isLoggedIn && currentPlan === plan.id;
-            const isPrimary = plan.id === 'enterprise';
+            const isPrimary = plan.id === 'premium';
             return (
               <div key={plan.id} className={`pricing-card ${isPrimary ? 'pricing-card-primary' : ''} ${isCurrent ? 'pricing-card-current' : ''}`}>
                 {plan.badge && <span className="pricing-badge">{plan.badge}</span>}

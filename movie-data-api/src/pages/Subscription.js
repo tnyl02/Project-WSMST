@@ -5,8 +5,8 @@ import { pricingPlans } from '../data/plans';
 import '../styles/Home.css';
 import '../styles/Subscription.css';
 
-const PLAN_ID_TO_API = { starter: 'free', developer: 'medium', enterprise: 'premium' };
-const API_TO_PLAN_ID = { free: 'starter', medium: 'developer', premium: 'enterprise' };
+const PLAN_ID_TO_API = { free: 'free', medium: 'medium', premium: 'premium' };
+const API_TO_PLAN_ID = { free: 'free', medium: 'medium', premium: 'premium' };
 
 const CheckIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0, marginTop: 2 }}>
@@ -30,11 +30,11 @@ const Subscription = ({ setCurrentPlan }) => {
         const res = await fetch('/api/user/profile', { headers: authHeader() });
         if (!res.ok) throw new Error();
         const data = await res.json();
-        const planId = API_TO_PLAN_ID[data.plan] || 'starter';
+        const planId = API_TO_PLAN_ID[data.plan] || 'free';
         setLocalPlan(planId);
         setCurrentPlan?.(planId);
       } catch {
-        setLocalPlan(localStorage.getItem('currentPlan') || 'starter');
+        setLocalPlan(localStorage.getItem('currentPlan') || 'free');
       } finally {
         setLoading(false);
       }

@@ -62,7 +62,7 @@ function AppLayout({ isLoggedIn, handleLogin, currentPlan, setCurrentPlan }) {
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true');
   const handleLogin = (val) => { setIsLoggedIn(val); localStorage.setItem('isLoggedIn', val); };
-  const [currentPlan, setCurrentPlan] = useState(() => localStorage.getItem('currentPlan') || 'starter');
+  const [currentPlan, setCurrentPlan] = useState(() => localStorage.getItem('currentPlan') || 'free');
 
   return (
     <Router>

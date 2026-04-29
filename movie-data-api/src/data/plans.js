@@ -1,7 +1,7 @@
 export const pricingPlans = [
   {
-    id: 'starter',
-    title: "Starter",
+    id: 'free',
+    title: "Free",
     price: "0",
     badge: "Free",
     features: [
@@ -15,9 +15,9 @@ export const pricingPlans = [
     buttonText: "Get started"
   },
   {
-    id: 'developer',
+    id: 'medium',
     badge: "Medium",
-    title: "Developer",
+    title: "Medium",
     price: "299",
     features: [
       "50,000 requests/month",
@@ -30,9 +30,9 @@ export const pricingPlans = [
     buttonText: "Get started"
   },
   {
-    id: 'enterprise',
+    id: 'premium',
     badge: "Premium",
-    title: "Enterprise",
+    title: "Premium",
     price: "990",
     features: [
       "Requests: unlimited",
