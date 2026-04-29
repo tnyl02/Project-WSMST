@@ -147,7 +147,7 @@ export default function MovieExplorer() {
   const hasAdvancedTools = plan === "medium" || plan === "premium";
   const canFilterByGenre = hasAdvancedTools;
 
-useEffect(() => {
+  useEffect(() => {
     let isMounted = true;
 
     const fetchMovies = async () => {
@@ -161,13 +161,9 @@ useEffect(() => {
         setLoading(true);
         setLoadError("");
 
-        // 🌟 [ลบออก] ส่วนที่เคย fetch("/api/key/") เราลบทิ้งได้เลย ไม่ต้องใช้แล้ว!
-
-        // 🌟 [แก้ไข 1] เปลี่ยน URL ไปยิงเส้น VIP ที่เราเพิ่งสร้าง
         const moviesRes = await fetch("/api/explorer/movies/", {
           headers: {
-            // 🌟 [แก้ไข 2] เปลี่ยนมาส่งแค่ Token ก็พอ (ไม่ต้องใช้ x-api-key)
-            "Authorization": `Bearer ${token}`, 
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -176,7 +172,6 @@ useEffect(() => {
         }
 
         const movieData = await moviesRes.json();
-        // รองรับกรณีที่ backend ส่งมาเป็น array ตรงๆ หรือส่งมาในคีย์ data
         const mappedMovies = (movieData.data || movieData || []).map(mapBackendMovie);
 
         if (isMounted) {
@@ -253,10 +248,13 @@ useEffect(() => {
     const result = movies.filter((movie) => {
       const matchesQuery = !normalizedQuery
         ? true
-        : hasAdvancedTools
+        : plan === "premium"
         ? movie.title.toLowerCase().includes(normalizedQuery) ||
           movie.genre.toLowerCase().includes(normalizedQuery) ||
           String(movie.year).includes(normalizedQuery)
+        : hasAdvancedTools
+        ? movie.title.toLowerCase().includes(normalizedQuery) ||
+          movie.genre.toLowerCase().includes(normalizedQuery)
         : movie.title.toLowerCase().includes(normalizedQuery);
 
       const matchesGenre =
@@ -274,7 +272,7 @@ useEffect(() => {
     }
 
     return canUseFullDataset ? result : result.slice(0, 4);
-  }, [canFilterByGenre, canUseFullDataset, genre, hasAdvancedTools, movies, query, sort]);
+  }, [canFilterByGenre, canUseFullDataset, genre, hasAdvancedTools, plan, movies, query, sort]);
 
   const requestDemo = (callback) => {
     if (plan === "guest") {
@@ -297,7 +295,6 @@ useEffect(() => {
   const handleSearchChange = (event) => {
     setQuery(event.target.value);
   };
-
 
   const secondsUntilReset = Math.max(0, Math.ceil(timeLeftMs / 1000));
   const resetTimeLabel = formatResetTime(resetAt);
@@ -323,8 +320,10 @@ useEffect(() => {
           value={query}
           onChange={handleSearchChange}
           placeholder={
-            hasAdvancedTools
+            plan === "premium"
               ? "Search by title, genre, year..."
+              : hasAdvancedTools
+              ? "Search by title, genre..."
               : "Search by title..."
           }
         />
@@ -361,8 +360,6 @@ useEffect(() => {
             <span className="quota-reset-time">Reset in {secondsUntilReset}s</span>
           )}
         </div>
-
-        
       </section>
 
       {loading ? (
@@ -516,4 +513,4 @@ useEffect(() => {
       )}
     </main>
   );
-} 
+}
