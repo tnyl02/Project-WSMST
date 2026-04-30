@@ -18,11 +18,11 @@ export const pricingPlans = [
     id: 'medium',
     badge: "Medium",
     title: "Medium",
-    price: "299",
+    price: "199",
     features: [
       "50,000 requests/month",
       "Rate limit: 50 req/min",
-      "Search: advanced (filter by genre, year, sort)",
+      "Search: advanced (filter by genre, sort)",
       "Data: full (includes synopsis & image URL)",
       "Export: not available",
       "Support: email (reply within 24h)"
@@ -33,11 +33,11 @@ export const pricingPlans = [
     id: 'premium',
     badge: "Premium",
     title: "Premium",
-    price: "990",
+    price: "299",
     features: [
       "Requests: unlimited",
       "Rate limit: 100 req/min",
-      "Search: full-text (incl. synopsis)",
+      "Search: full-text, advanced (filter by genre, year, sort)",
       "Data: full (synopsis & image URL)",
       "Export: bulk up to 1,000 titles/call",
       "Support: 24/7 priority consultant"
