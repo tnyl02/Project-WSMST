@@ -137,18 +137,6 @@ const UsageLogs = () => {
             { value: '5xx', label: '5xx Server error' },
           ]}
         />
-
-        <Dropdown
-          value={methodFilter}
-          onChange={setMethodFilter}
-          options={[
-            { value: 'ALL',    label: 'ALL methods' },
-            { value: 'GET',    label: 'GET' },
-            { value: 'POST',   label: 'POST' },
-            { value: 'DELETE', label: 'DELETE' },
-            { value: 'PUT',    label: 'PUT' },
-          ]}
-        />
       </div>
 
       <div className="table-wrap">

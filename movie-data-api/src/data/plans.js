@@ -37,8 +37,8 @@ export const pricingPlans = [
     features: [
       "Requests: unlimited",
       "Rate limit: 100 req/min",
-      "Search: full-text, advanced (filter by genre, year, sort)",
-      "Data: full (synopsis & image URL)",
+      "Search: advanced (filter by genre, year, sort)",
+      "Data: full (includes synopsis & image URL)",
       "Export: bulk up to 1,000 titles/call",
       "Support: 24/7 priority consultant"
     ],
