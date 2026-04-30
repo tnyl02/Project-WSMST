@@ -76,8 +76,7 @@ const mapBackendMovie = (raw) => {
         ? movie.score
         : Number.parseFloat(movie.rating ?? movie.score ?? 0) || 0,
     imageUrl: movie.image_url ?? movie.imageUrl ?? "",
-    synopsis:
-      movie.description ?? movie.synopsis ?? "No synopsis available.",
+    synopsis: movie.description ?? movie.synopsis ?? "No synopsis available.",
   };
 };
 
@@ -103,6 +102,7 @@ const getInitialUsedQuota = (plan) => {
 
   if (!Number.isFinite(storedResetAt) || storedResetAt <= now) {
     localStorage.removeItem(USED_QUOTA_STORAGE_KEY);
+    localStorage.removeItem(RESET_AT_STORAGE_KEY);
     return 0;
   }
 
@@ -131,10 +131,13 @@ export default function MovieExplorer() {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(isLoggedIn);
   const [loadError, setLoadError] = useState("");
+  const [isMoviesRateLimited, setIsMoviesRateLimited] = useState(false);
   const [resetAt, setResetAt] = useState(getInitialResetAt);
   const [timeLeftMs, setTimeLeftMs] = useState(() =>
     Math.max(0, getInitialResetAt() - Date.now())
   );
+  // ✅ trigger ให้ fetchMovies ทำงานใหม่หลัง quota reset
+  const [quotaResetTrigger, setQuotaResetTrigger] = useState(0);
 
   const quotaLimit = PLAN_LIMITS[plan] ?? PLAN_LIMITS.free;
   const isRateLimited = usedQuota >= quotaLimit && plan !== "guest";
@@ -142,6 +145,32 @@ export default function MovieExplorer() {
   const canUseFullDataset = plan !== "guest";
   const hasAdvancedTools = plan === "medium" || plan === "premium";
   const canFilterByGenre = hasAdvancedTools;
+  const showRateLimitPanel = isRateLimited || isMoviesRateLimited;
+
+  // ── helper: sync resetAt จาก 429 response body ───────────────────
+  const syncResetAtFrom429 = (errJson) => {
+    if (errJson.reset_at) {
+      const backendResetAt = new Date(errJson.reset_at).getTime();
+      if (Number.isFinite(backendResetAt) && backendResetAt > Date.now()) {
+        setResetAt(backendResetAt);
+        setTimeLeftMs(Math.max(0, backendResetAt - Date.now()));
+        return;
+      }
+    }
+
+    if (errJson.retry_after_seconds) {
+      const newResetAt = Date.now() + errJson.retry_after_seconds * 1000;
+      setResetAt(newResetAt);
+      setTimeLeftMs(errJson.retry_after_seconds * 1000);
+      return;
+    }
+
+    // fallback: Retry-After header
+    const retryAfter = Number(errJson.retry_after ?? 60);
+    const newResetAt = Date.now() + retryAfter * 1000;
+    setResetAt(newResetAt);
+    setTimeLeftMs(retryAfter * 1000);
+  };
 
   // ── Step 1: ดึง API Key ก่อน ──────────────────────────────────────
   useEffect(() => {
@@ -150,13 +179,13 @@ export default function MovieExplorer() {
       return;
     }
 
-    const controller = new AbortController(); // ✅
+    const controller = new AbortController();
 
     const fetchApiKey = async () => {
       try {
         const res = await fetch("/api/key/", {
           headers: { Authorization: `Bearer ${token}` },
-          signal: controller.signal, // ✅
+          signal: controller.signal,
         });
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -164,7 +193,7 @@ export default function MovieExplorer() {
         const data = await res.json();
         setApiKey(data.api_key ?? "");
       } catch (err) {
-        if (err.name === "AbortError") return; // ✅
+        if (err.name === "AbortError") return;
         console.error("fetchApiKey error:", err);
         setLoadError("Unable to load API key. Please try again.");
       } finally {
@@ -173,57 +202,85 @@ export default function MovieExplorer() {
     };
 
     fetchApiKey();
-
-    return () => controller.abort(); // ✅
-
+    return () => controller.abort();
   }, [token]);
 
-  // ── Step 2: ดึงหนังหลังจากได้ API Key แล้ว ────────────────────────
-  useEffect(() => {
-    if (apiKeyLoading) return;
-    if (!token || !apiKey) {
-      setMovies([]);
-      setLoading(false);
-      return;
-    }
+ // ── Step 2: ดึงหนังหลังจากได้ API Key แล้ว ────────────────────────
+useEffect(() => {
+  if (apiKeyLoading) return;
+  if (!token || !apiKey) {
+    setMovies([]);
+    setLoading(false);
+    return;
+  }
 
-    const controller = new AbortController(); // ✅
+  const controller = new AbortController();
 
-    const fetchMovies = async () => {
-      try {
-        setLoading(true);
-        setLoadError("");
+  const fetchMovies = async () => {
+    try {
+      setLoading(true);
+      setLoadError("");
+      setIsMoviesRateLimited(false);
 
-        const res = await fetch("/api/movies/", {
-          headers: { "x-api-key": apiKey },
-          signal: controller.signal, // ✅
-        });
+      const res = await fetch("/api/movies/", {
+        headers: { "x-api-key": apiKey },
+        signal: controller.signal,
+      });
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const json = await res.json();
-        const list = Array.isArray(json)
-          ? json
-          : Array.isArray(json.data)
-          ? json.data
-          : [];
-
-        setMovies(list.map(mapBackendMovie));
-      } catch (err) {
-        if (err.name === "AbortError") return; // ✅
-        console.error("fetchMovies error:", err);
-        setMovies([]);
-        setLoadError("Unable to load movies from backend right now.");
-      } finally {
-        setLoading(false);
+      // ✅ 429 → แสดง error panel
+      if (res.status === 429) {
+        const errJson = await res.json().catch(() => ({}));
+        setUsedQuota(quotaLimit);
+        syncResetAtFrom429(errJson);
+        setIsMoviesRateLimited(true);
+        return;
+      }else{
+        setUsedQuota(usedQuota);
+        setIsMoviesRateLimited(false);
       }
-    };
 
-    fetchMovies();
 
-    return () => controller.abort(); // ✅
 
-  }, [token, apiKey, apiKeyLoading]);
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      
+      const json = await res.json();
+
+      // ✅ 200 → sync quota จาก Backend ถ้ามี
+      if (json.quota) {
+        setUsedQuota(json.quota.used ?? 0);
+        if (json.quota.reset_at) {
+          const backendResetAt = new Date(json.quota.reset_at).getTime();
+          if (Number.isFinite(backendResetAt) && backendResetAt > Date.now()) {
+            setResetAt(backendResetAt);
+            setTimeLeftMs(Math.max(0, backendResetAt - Date.now()));
+          }
+        }
+      } else {
+        // ✅ Backend ไม่ส่ง quota มา → นับเองฝั่ง Frontend +1
+        setUsedQuota((prev) => Math.min(prev + 1, quotaLimit));
+      }
+
+      const list = Array.isArray(json)
+        ? json
+        : Array.isArray(json.data)
+        ? json.data
+        : [];
+
+      setMovies(list.map(mapBackendMovie));
+    } catch (err) {
+      if (err.name === "AbortError") return;
+      console.error("fetchMovies error:", err);
+      setMovies([]);
+      setLoadError("Unable to load movies from backend right now.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchMovies();
+  return () => controller.abort();
+}, [token, apiKey, apiKeyLoading, quotaResetTrigger]);
 
   // ── Timer reset quota ─────────────────────────────────────────────
   useEffect(() => {
@@ -235,9 +292,15 @@ export default function MovieExplorer() {
     const intervalId = window.setInterval(() => {
       const now = Date.now();
       if (now >= resetAt) {
+        const nextResetAt = now + RESET_INTERVAL_MS;
         setUsedQuota(0);
-        setResetAt(now + RESET_INTERVAL_MS);
+        setIsMoviesRateLimited(false);
+        setResetAt(nextResetAt);
         setTimeLeftMs(RESET_INTERVAL_MS);
+        localStorage.setItem(RESET_AT_STORAGE_KEY, String(nextResetAt));
+        localStorage.setItem(USED_QUOTA_STORAGE_KEY, "0");
+        // ✅ trigger fetchMovies ใหม่เพื่อ sync จาก Backend
+        setQuotaResetTrigger((n) => n + 1);
         return;
       }
       setTimeLeftMs(resetAt - now);
@@ -285,9 +348,7 @@ export default function MovieExplorer() {
         : movie.title.toLowerCase().includes(normalizedQuery);
 
       const matchesGenre =
-        !canFilterByGenre ||
-        genre === "all" ||
-        movie.genres.includes(genre);
+        !canFilterByGenre || genre === "all" || movie.genres.includes(genre);
 
       return matchesQuery && matchesGenre;
     });
@@ -325,13 +386,20 @@ export default function MovieExplorer() {
       setMovieDetailLoading(true);
       setSelectedMovie({ id: movie.id, title: movie.title });
 
-      const controller = new AbortController(); // ✅
+      const controller = new AbortController();
 
       try {
         const res = await fetch(`/api/movies/${movie.id}`, {
           headers: { "x-api-key": apiKey },
-          signal: controller.signal, // ✅
+          signal: controller.signal,
         });
+
+        if (res.status === 429) {
+          const errJson = await res.json().catch(() => ({}));
+          setUsedQuota(quotaLimit);
+          syncResetAtFrom429(errJson);
+          throw new Error(errJson.message || "Rate limit exceeded");
+        }
 
         if (!res.ok) {
           const errJson = await res.json().catch(() => ({}));
@@ -343,7 +411,7 @@ export default function MovieExplorer() {
         const json = await res.json();
         setSelectedMovie(mapBackendMovie(json));
       } catch (err) {
-        if (err.name === "AbortError") return; // ✅
+        if (err.name === "AbortError") return;
         console.error("openMovie error:", err);
         setMovieDetailError(err.message || "Unable to load movie details.");
       } finally {
@@ -445,7 +513,7 @@ export default function MovieExplorer() {
         <section className="guest-unlock">
           <p>{loadError}</p>
         </section>
-      ) : isRateLimited ? (
+      ) : showRateLimitPanel ? (
         <section className="rate-limit-panel" role="alert">
           <h1>429</h1>
           <strong>Rate limit exceeded</strong>
@@ -502,12 +570,10 @@ export default function MovieExplorer() {
           {!isLoggedIn && (
             <section className="guest-unlock">
               <p>
-                Showing {visibleMovies.length} of {movies.length} films.
-                Login to access the full database.
+                Showing {visibleMovies.length} of {movies.length} films. Login
+                to access the full database.
               </p>
-              <Link to="/register">
-                Sign up free to unlock all -&gt;
-              </Link>
+              <Link to="/register">Sign up free to unlock all -&gt;</Link>
             </section>
           )}
 
