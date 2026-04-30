@@ -24,12 +24,9 @@ const normalizeGenres = (genreValue) => {
   if (Array.isArray(genreValue)) {
     return genreValue
       .map((item) => {
-        if (typeof item === "string") {
-          return item.trim();
-        }
-        if (item && typeof item === "object" && item.name) {
+        if (typeof item === "string") return item.trim();
+        if (item && typeof item === "object" && item.name)
           return String(item.name).trim();
-        }
         return "";
       })
       .filter(Boolean);
@@ -37,18 +34,15 @@ const normalizeGenres = (genreValue) => {
 
   if (typeof genreValue === "string") {
     const trimmed = genreValue.trim();
-    if (!trimmed) {
-      return [];
-    }
+    if (!trimmed) return [];
 
     if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
       try {
         return normalizeGenres(JSON.parse(trimmed));
-      } catch (error) {
+      } catch {
         const nameMatches = [...trimmed.matchAll(/name:\s*([^,}\]]+)/g)];
-        if (nameMatches.length > 0) {
+        if (nameMatches.length > 0)
           return nameMatches.map((match) => match[1].trim());
-        }
       }
     }
 
@@ -61,7 +55,8 @@ const normalizeGenres = (genreValue) => {
   return [];
 };
 
-const mapBackendMovie = (movie) => {
+const mapBackendMovie = (raw) => {
+  const movie = raw?.data ?? raw?.movie ?? raw;
   const genres = normalizeGenres(movie.genre);
 
   return {
@@ -69,7 +64,7 @@ const mapBackendMovie = (movie) => {
     title: movie.title || "",
     genre: genres.join(", ") || "-",
     genres,
-    year: movie.release_year ?? "-",
+    year: movie.release_year ?? movie.year ?? "-",
     runtime:
       movie.runtime !== null && movie.runtime !== undefined
         ? `${movie.runtime} min`
@@ -77,9 +72,12 @@ const mapBackendMovie = (movie) => {
     score:
       typeof movie.rating === "number"
         ? movie.rating
-        : Number.parseFloat(movie.rating || 0) || 0,
-    imageUrl: movie.image_url || "",
-    synopsis: movie.description || "No synopsis available.",
+        : typeof movie.score === "number"
+        ? movie.score
+        : Number.parseFloat(movie.rating ?? movie.score ?? 0) || 0,
+    imageUrl: movie.image_url ?? movie.imageUrl ?? "",
+    synopsis:
+      movie.description ?? movie.synopsis ?? "No synopsis available.",
   };
 };
 
@@ -93,18 +91,12 @@ const DetailRow = ({ label, value, locked }) => (
 const getInitialResetAt = () => {
   const storedValue = Number(localStorage.getItem(RESET_AT_STORAGE_KEY));
   const now = Date.now();
-
-  if (Number.isFinite(storedValue) && storedValue > now) {
-    return storedValue;
-  }
-
+  if (Number.isFinite(storedValue) && storedValue > now) return storedValue;
   return now + RESET_INTERVAL_MS;
 };
 
 const getInitialUsedQuota = (plan) => {
-  if (plan === "guest") {
-    return 0;
-  }
+  if (plan === "guest") return 0;
 
   const now = Date.now();
   const storedResetAt = Number(localStorage.getItem(RESET_AT_STORAGE_KEY));
@@ -124,6 +116,8 @@ export default function MovieExplorer() {
   const isLoggedIn = Boolean(token);
 
   const [plan] = useState(isLoggedIn ? storedPlan : "guest");
+  const [apiKey, setApiKey] = useState("");
+  const [apiKeyLoading, setApiKeyLoading] = useState(isLoggedIn);
   const [usedQuota, setUsedQuota] = useState(() =>
     getInitialUsedQuota(isLoggedIn ? storedPlan : "guest")
   );
@@ -131,6 +125,8 @@ export default function MovieExplorer() {
   const [genre, setGenre] = useState("all");
   const [sort, setSort] = useState("default");
   const [selectedMovie, setSelectedMovie] = useState(null);
+  const [movieDetailLoading, setMovieDetailLoading] = useState(false);
+  const [movieDetailError, setMovieDetailError] = useState("");
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(isLoggedIn);
@@ -147,55 +143,89 @@ export default function MovieExplorer() {
   const hasAdvancedTools = plan === "medium" || plan === "premium";
   const canFilterByGenre = hasAdvancedTools;
 
+  // ── Step 1: ดึง API Key ก่อน ──────────────────────────────────────
   useEffect(() => {
-    let isMounted = true;
+    if (!token) {
+      setApiKeyLoading(false);
+      return;
+    }
+
+    const controller = new AbortController(); // ✅
+
+    const fetchApiKey = async () => {
+      try {
+        const res = await fetch("/api/key/", {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal, // ✅
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        setApiKey(data.api_key ?? "");
+      } catch (err) {
+        if (err.name === "AbortError") return; // ✅
+        console.error("fetchApiKey error:", err);
+        setLoadError("Unable to load API key. Please try again.");
+      } finally {
+        setApiKeyLoading(false);
+      }
+    };
+
+    fetchApiKey();
+
+    return () => controller.abort(); // ✅
+
+  }, [token]);
+
+  // ── Step 2: ดึงหนังหลังจากได้ API Key แล้ว ────────────────────────
+  useEffect(() => {
+    if (apiKeyLoading) return;
+    if (!token || !apiKey) {
+      setMovies([]);
+      setLoading(false);
+      return;
+    }
+
+    const controller = new AbortController(); // ✅
 
     const fetchMovies = async () => {
-      if (!token) {
-        setMovies([]);
-        setLoading(false);
-        return;
-      }
-
       try {
         setLoading(true);
         setLoadError("");
 
-        const moviesRes = await fetch("/api/explorer/movies/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const res = await fetch("/api/movies/", {
+          headers: { "x-api-key": apiKey },
+          signal: controller.signal, // ✅
         });
 
-        if (!moviesRes.ok) {
-          throw new Error("Failed to load movies");
-        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        const movieData = await moviesRes.json();
-        const mappedMovies = (movieData.data || movieData || []).map(mapBackendMovie);
+        const json = await res.json();
+        const list = Array.isArray(json)
+          ? json
+          : Array.isArray(json.data)
+          ? json.data
+          : [];
 
-        if (isMounted) {
-          setMovies(mappedMovies);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setMovies([]);
-          setLoadError("Unable to load movies from backend right now.");
-        }
+        setMovies(list.map(mapBackendMovie));
+      } catch (err) {
+        if (err.name === "AbortError") return; // ✅
+        console.error("fetchMovies error:", err);
+        setMovies([]);
+        setLoadError("Unable to load movies from backend right now.");
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
     fetchMovies();
 
-    return () => {
-      isMounted = false;
-    };
-  }, [token]);
+    return () => controller.abort(); // ✅
 
+  }, [token, apiKey, apiKeyLoading]);
+
+  // ── Timer reset quota ─────────────────────────────────────────────
   useEffect(() => {
     if (plan === "guest") {
       setUsedQuota(0);
@@ -204,20 +234,16 @@ export default function MovieExplorer() {
 
     const intervalId = window.setInterval(() => {
       const now = Date.now();
-
       if (now >= resetAt) {
         setUsedQuota(0);
         setResetAt(now + RESET_INTERVAL_MS);
         setTimeLeftMs(RESET_INTERVAL_MS);
         return;
       }
-
       setTimeLeftMs(resetAt - now);
     }, 1000);
 
-    return () => {
-      window.clearInterval(intervalId);
-    };
+    return () => window.clearInterval(intervalId);
   }, [plan, resetAt]);
 
   useEffect(() => {
@@ -226,25 +252,26 @@ export default function MovieExplorer() {
       localStorage.removeItem(USED_QUOTA_STORAGE_KEY);
       return;
     }
-
     localStorage.setItem(RESET_AT_STORAGE_KEY, String(resetAt));
   }, [plan, resetAt]);
 
   useEffect(() => {
-    if (plan === "guest") {
-      return;
-    }
-
+    if (plan === "guest") return;
     localStorage.setItem(USED_QUOTA_STORAGE_KEY, String(usedQuota));
   }, [plan, usedQuota]);
 
+  // ── Derived ───────────────────────────────────────────────────────
   const genres = useMemo(
-    () => ["all", ...Array.from(new Set(movies.flatMap((movie) => movie.genres)))],
+    () => [
+      "all",
+      ...Array.from(new Set(movies.flatMap((movie) => movie.genres))),
+    ],
     [movies]
   );
 
   const visibleMovies = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
+
     const result = movies.filter((movie) => {
       const matchesQuery = !normalizedQuery
         ? true
@@ -258,61 +285,106 @@ export default function MovieExplorer() {
         : movie.title.toLowerCase().includes(normalizedQuery);
 
       const matchesGenre =
-        !canFilterByGenre || genre === "all" || movie.genres.includes(genre);
+        !canFilterByGenre ||
+        genre === "all" ||
+        movie.genres.includes(genre);
 
       return matchesQuery && matchesGenre;
     });
 
-    if (sort === "score-desc") {
-      result.sort((a, b) => b.score - a.score);
-    }
-
-    if (sort === "score-asc") {
-      result.sort((a, b) => a.score - b.score);
-    }
+    if (sort === "score-desc") result.sort((a, b) => b.score - a.score);
+    if (sort === "score-asc") result.sort((a, b) => a.score - b.score);
 
     return canUseFullDataset ? result : result.slice(0, 4);
-  }, [canFilterByGenre, canUseFullDataset, genre, hasAdvancedTools, plan, movies, query, sort]);
+  }, [
+    canFilterByGenre,
+    canUseFullDataset,
+    genre,
+    hasAdvancedTools,
+    plan,
+    movies,
+    query,
+    sort,
+  ]);
 
+  // ── Helpers ───────────────────────────────────────────────────────
   const requestDemo = (callback) => {
     if (plan === "guest") {
       setShowLoginPrompt(true);
       return;
     }
-
-    if (usedQuota >= quotaLimit) {
-      return;
-    }
-
+    if (usedQuota >= quotaLimit) return;
     setUsedQuota((current) => current + 1);
     callback();
   };
 
+  // ── เปิดดูรายละเอียด → ยิง /api/movies/:id ────────────────────────
   const openMovie = (movie) => {
-    requestDemo(() => setSelectedMovie(movie));
+    requestDemo(async () => {
+      setMovieDetailError("");
+      setMovieDetailLoading(true);
+      setSelectedMovie({ id: movie.id, title: movie.title });
+
+      const controller = new AbortController(); // ✅
+
+      try {
+        const res = await fetch(`/api/movies/${movie.id}`, {
+          headers: { "x-api-key": apiKey },
+          signal: controller.signal, // ✅
+        });
+
+        if (!res.ok) {
+          const errJson = await res.json().catch(() => ({}));
+          throw new Error(
+            errJson.message || errJson.error || `HTTP ${res.status}`
+          );
+        }
+
+        const json = await res.json();
+        setSelectedMovie(mapBackendMovie(json));
+      } catch (err) {
+        if (err.name === "AbortError") return; // ✅
+        console.error("openMovie error:", err);
+        setMovieDetailError(err.message || "Unable to load movie details.");
+      } finally {
+        setMovieDetailLoading(false);
+      }
+    });
   };
 
-  const handleSearchChange = (event) => {
-    setQuery(event.target.value);
-  };
+  const handleSearchChange = (event) => setQuery(event.target.value);
 
   const secondsUntilReset = Math.max(0, Math.ceil(timeLeftMs / 1000));
   const resetTimeLabel = formatResetTime(resetAt);
-
   const lockedSynopsis =
     "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxx";
 
+  // ── Loading API Key ────────────────────────────────────────────────
+  if (apiKeyLoading) {
+    return (
+      <main className="movie-explorer">
+        <section className="guest-unlock">
+          <p>Loading...</p>
+        </section>
+      </main>
+    );
+  }
+
+  // ── Render ────────────────────────────────────────────────────────
   return (
     <main className="movie-explorer">
       {!isLoggedIn && (
         <div className="explorer-signup-banner">
-          Want to build your own movie app? Sign up now to get your free API key
-          and start making 10 requests per minute!
+          Want to build your own movie app? Sign up now to get your free API
+          key and start making 10 requests per minute!
         </div>
       )}
 
+      {/* Toolbar */}
       <section
-        className={`explorer-toolbar ${canFilterByGenre ? "" : "explorer-toolbar-simple"}`.trim()}
+        className={`explorer-toolbar ${
+          canFilterByGenre ? "" : "explorer-toolbar-simple"
+        }`.trim()}
         aria-label="Movie filters"
       >
         <input
@@ -357,11 +429,14 @@ export default function MovieExplorer() {
         <div className="quota-counter">
           Quota: {plan === "guest" ? 0 : usedQuota}/{quotaLimit}
           {plan !== "guest" && (
-            <span className="quota-reset-time">Reset in {secondsUntilReset}s</span>
+            <span className="quota-reset-time">
+              Reset in {secondsUntilReset}s
+            </span>
           )}
         </div>
       </section>
 
+      {/* Movie list */}
       {loading ? (
         <section className="guest-unlock">
           <p>Loading movies...</p>
@@ -375,8 +450,8 @@ export default function MovieExplorer() {
           <h1>429</h1>
           <strong>Rate limit exceeded</strong>
           <p>
-            You have used all {quotaLimit} requests for this minute. Upgrade for
-            a higher rate limit.
+            You have used all {quotaLimit} requests for this minute. Upgrade
+            for a higher rate limit.
           </p>
           <p className="rate-limit-reset-text">
             Quota resets at {resetTimeLabel} ({secondsUntilReset}s remaining)
@@ -409,10 +484,16 @@ export default function MovieExplorer() {
                       : undefined
                   }
                 />
-                <span>{!isLoggedIn && index === 3 ? "xxxxx" : movie.title}</span>
-                <small>{!isLoggedIn && index === 3 ? "xxxxx" : movie.genre}</small>
+                <span>
+                  {!isLoggedIn && index === 3 ? "xxxxx" : movie.title}
+                </span>
+                <small>
+                  {!isLoggedIn && index === 3 ? "xxxxx" : movie.genre}
+                </small>
                 <small className="movie-score">
-                  {!isLoggedIn && index === 3 ? "x.x" : movie.score.toFixed(1)}
+                  {!isLoggedIn && index === 3
+                    ? "x.x"
+                    : movie.score.toFixed(1)}
                 </small>
               </button>
             ))}
@@ -421,14 +502,16 @@ export default function MovieExplorer() {
           {!isLoggedIn && (
             <section className="guest-unlock">
               <p>
-                Showing {visibleMovies.length} of {movies.length} films. Login to
-                access the full database.
+                Showing {visibleMovies.length} of {movies.length} films.
+                Login to access the full database.
               </p>
-              <Link to="/register">Sign up free to unlock all -&gt;</Link>
+              <Link to="/register">
+                Sign up free to unlock all -&gt;
+              </Link>
             </section>
           )}
 
-          {!visibleMovies.length && (
+          {visibleMovies.length === 0 && !loading && (
             <section className="guest-unlock">
               <p>No movies found.</p>
             </section>
@@ -436,6 +519,7 @@ export default function MovieExplorer() {
         </>
       )}
 
+      {/* Modal รายละเอียดหนัง */}
       {selectedMovie && (
         <div
           className="modal-backdrop"
@@ -457,35 +541,60 @@ export default function MovieExplorer() {
               &times;
             </button>
 
-            <h2 id="movie-detail-title">{selectedMovie.title}</h2>
-            <p className="movie-id">ID : {selectedMovie.id}</p>
-            <p className={isFreePlan ? "synopsis-locked" : "movie-synopsis"}>
-              {isFreePlan ? lockedSynopsis : selectedMovie.synopsis}
-            </p>
-            {isFreePlan && (
-              <strong className="upgrade-note">
-                (upgrade to Medium to unlock)
-              </strong>
-            )}
+            {movieDetailLoading ? (
+              <p>Loading movie details...</p>
+            ) : movieDetailError ? (
+              <>
+                <h2 id="movie-detail-title">{selectedMovie.title}</h2>
+                <p className="detail-error">{movieDetailError}</p>
+              </>
+            ) : (
+              <>
+                <h2 id="movie-detail-title">{selectedMovie.title}</h2>
+                <p className="movie-id">ID : {selectedMovie.id}</p>
 
-            <dl className="movie-detail-list">
-              <DetailRow label="Year" value={selectedMovie.year} />
-              <DetailRow label="Genre" value={selectedMovie.genre} />
-              <DetailRow label="Runtime" value={selectedMovie.runtime} />
-              <DetailRow
-                label="Score"
-                value={<span className="detail-score">★ {selectedMovie.score.toFixed(1)}</span>}
-              />
-              <DetailRow
-                label="Image URL"
-                value={isFreePlan ? "xxxxxxxxxxxxxxx" : selectedMovie.imageUrl || "-"}
-                locked={isFreePlan}
-              />
-            </dl>
+                <p
+                  className={
+                    isFreePlan ? "synopsis-locked" : "movie-synopsis"
+                  }
+                >
+                  {isFreePlan ? lockedSynopsis : selectedMovie.synopsis}
+                </p>
+                {isFreePlan && (
+                  <strong className="upgrade-note">
+                    (upgrade to Medium to unlock)
+                  </strong>
+                )}
+
+                <dl className="movie-detail-list">
+                  <DetailRow label="Year" value={selectedMovie.year} />
+                  <DetailRow label="Genre" value={selectedMovie.genre} />
+                  <DetailRow label="Runtime" value={selectedMovie.runtime} />
+                  <DetailRow
+                    label="Score"
+                    value={
+                      <span className="detail-score">
+                        ★ {selectedMovie.score?.toFixed(1)}
+                      </span>
+                    }
+                  />
+                  <DetailRow
+                    label="Image URL"
+                    value={
+                      isFreePlan
+                        ? "xxxxxxxxxxxxxxx"
+                        : selectedMovie.imageUrl || "-"
+                    }
+                    locked={isFreePlan}
+                  />
+                </dl>
+              </>
+            )}
           </section>
         </div>
       )}
 
+      {/* Modal Login Prompt */}
       {showLoginPrompt && (
         <div
           className="modal-backdrop"
@@ -506,7 +615,9 @@ export default function MovieExplorer() {
             </p>
             <div className="login-actions">
               <Link to="/register">Sign up free -&gt;</Link>
-              <button onClick={() => setShowLoginPrompt(false)}>Not now</button>
+              <button onClick={() => setShowLoginPrompt(false)}>
+                Not now
+              </button>
             </div>
           </section>
         </div>
