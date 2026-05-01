@@ -77,12 +77,12 @@ func GetDashboardStats(c *gin.Context) {
 		graphData = []map[string]interface{}{}
 	}
 
-	// 🌟 6. ส่งข้อมูลทั้งหมดกลับไปให้ Frontend
+	
 	c.JSON(http.StatusOK, gin.H{
 		"today_usage":   todayUsage,
 		"today_errors":  todayErrors,
-		"monthly_usage": monthlyUsage, // ส่งค่ารายเดือนไปให้
-		"minute_usage":  minuteUsage,  // ส่งค่ารายนาทีไปให้
+		"monthly_usage": monthlyUsage,
+		"minute_usage":  minuteUsage,  
 		"graph_data":    graphData,
 	})
 }

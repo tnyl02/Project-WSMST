@@ -1,4 +1,3 @@
--- 1. ตารางเก็บข้อมูล User
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
@@ -9,7 +8,6 @@ CREATE TABLE users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. ตารางเก็บ API Keys
 CREATE TABLE api_keys (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -18,7 +16,6 @@ CREATE TABLE api_keys (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. ตารางข้อมูลหนัง (Mock Data)
 CREATE TABLE movies (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -31,7 +28,6 @@ CREATE TABLE movies (
     image_url TEXT
 );
 
--- 4. ตารางบันทึกการใช้งาน (สำหรับทำ Rate Limit)
 CREATE TABLE usage_logs (
     id SERIAL PRIMARY KEY,
     api_key_id INTEGER REFERENCES api_keys(id) ON DELETE CASCADE,
@@ -40,15 +36,12 @@ CREATE TABLE usage_logs (
     accessed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
------------------------------------------------------------
--- 1. สร้าง User จำลอง 3 คน
 INSERT INTO users (username, email, password_hash, plan)
 VALUES 
 ('user1_free', 'free@test.com', '1234', 'free'),
 ('user2_medium', 'medium@test.com', '1234', 'medium'),
 ('user3_premium', 'premium@test.com', '1234', 'premium');
 
--- 2. สร้าง API Key ผูกกับ User ทั้ง 3 คน
 INSERT INTO api_keys (user_id, key_string)
 VALUES 
 (1, 'key_free_11111'),

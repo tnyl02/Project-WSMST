@@ -8,7 +8,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// Config เก็บค่าการตั้งค่าตาม .env
 type Config struct {
 	Port       string
 	DBHost     string
@@ -19,7 +18,6 @@ type Config struct {
 	DBSSLMode  string
 }
 
-// LoadConfig โหลดค่าจาก .env
 func LoadConfig() *Config {
 	err := godotenv.Load()
 	if err != nil {
@@ -37,7 +35,6 @@ func LoadConfig() *Config {
 	}
 }
 
-// GetDSN (Data Source Name) เป็นฟังก์ชันช่วยประกอบร่าง Connection String
 func (c *Config) GetDSN() string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		c.DBUser,

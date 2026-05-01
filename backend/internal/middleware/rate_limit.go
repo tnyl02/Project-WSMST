@@ -85,7 +85,6 @@ func RateLimitMiddleware() gin.HandlerFunc {
 		insertQuery := `INSERT INTO usage_logs (api_key_id, endpoint, status_code) VALUES ($1, $2, 200)`
 		_, err = config.DB.Exec(context.Background(), insertQuery, apiKeyID, c.Request.URL.Path)
 		if err != nil {
-			// Ignore logging failures so API traffic can continue.
 		}
 
 		c.Next()

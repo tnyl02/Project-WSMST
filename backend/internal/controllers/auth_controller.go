@@ -24,7 +24,6 @@ type LoginInput struct {
 	Password string `json:"password" binding:"required"`
 }
 
-// 1. REGISTER
 func Register(c *gin.Context) {
 	var input RegisterInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -64,7 +63,6 @@ func Register(c *gin.Context) {
 	})
 }
 
-// 2. LOGIN
 func Login(c *gin.Context) {
 	var input LoginInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -113,7 +111,6 @@ func Login(c *gin.Context) {
 	})
 }
 
-//update
 type UpdateProfileInput struct {
 	Username string `json:"username"`
 	Password string `json:"password" binding:"required,min=4"`
@@ -141,7 +138,6 @@ func GetProfile(c *gin.Context) {
 	})
 }
 
-// PUT /api/user/profile
 func UpdateProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {

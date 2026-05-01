@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// /api/admin/users
 func GetAllUsers(c *gin.Context) {
 	
 query := `
@@ -52,7 +51,6 @@ query := `
 	c.JSON(http.StatusOK, gin.H{"users": users})
 }
 
-// /api/admin/users/:id/role
 func UpdateUserRole(c *gin.Context) {
 	id := c.Param("id")
 	var input struct {
@@ -71,7 +69,6 @@ func UpdateUserRole(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "อัปเดตสิทธิ์เป็น " + input.Role + " สำเร็จ"})
 }
 
-// /api/admin/users/:id/plan
 func UpdateUserPlan(c *gin.Context) {
 	id := c.Param("id")
 	var input struct {
@@ -90,7 +87,6 @@ func UpdateUserPlan(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "อัปเดตแพ็กเกจเป็น " + input.Plan + " สำเร็จ"})
 }
 
-///api/admin/users/:id
 func DeleteUser(c *gin.Context) {
 	id := c.Param("id")
 
@@ -116,7 +112,6 @@ type MovieInput struct {
 	ImageURL    string  `json:"image_url"`
 }
 
-// /api/admin/movies
 func CreateMovie(c *gin.Context) {
 	var input MovieInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -137,7 +132,6 @@ func CreateMovie(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "เพิ่มหนังใหม่สำเร็จ", "movie_id": newID})
 }
 
-//  /api/admin/movies/:id
 func UpdateMovie(c *gin.Context) {
 	id := c.Param("id")
 	var input MovieInput
@@ -156,7 +150,6 @@ func UpdateMovie(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "แก้ไขข้อมูลหนังสำเร็จ"})
 }
 
-// DELETE /api/admin/movies/:id
 func DeleteMovie(c *gin.Context) {
 	id := c.Param("id")
 	_, err := config.DB.Exec(context.Background(), "DELETE FROM movies WHERE id = $1", id)
@@ -167,7 +160,6 @@ func DeleteMovie(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "ลบหนังออกจากระบบสำเร็จ"})
 }
 
-//  /api/admin/dashboard/stats
 func GetAdminSystemStats(c *gin.Context) {
 	var totalUsers, totalMovies, totalRequestsToday int
 

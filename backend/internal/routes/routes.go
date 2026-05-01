@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SetupRouter 
 func SetupRouter() *gin.Engine {
 
 	r := gin.Default()
@@ -18,9 +17,6 @@ func SetupRouter() *gin.Engine {
 		authGroup.POST("/login", controllers.Login)
 	}
 
-	// ==========================================
-	// 🎬 กลุ่มที่ 1: สำหรับลูกค้าภายนอก (ใช้ API Key + โดนจำกัดโควต้า)
-	// ==========================================
 	movieGroup := r.Group("/api/movies")
 	movieGroup.Use(middleware.APIKeyMiddleware()) 
 	movieGroup.Use(middleware.RateLimitMiddleware())
@@ -30,9 +26,6 @@ func SetupRouter() *gin.Engine {
 		movieGroup.GET("/genre/:genre", controllers.GetMoviesByGenre)
 	}
 
-	// ==========================================
-	// 🌟 กลุ่มที่ 2: เส้นทาง VIP สำหรับหน้าเว็บ Movie Explorer ของเราเอง (ไม่โดนจำกัดโควต้า)
-	// ==========================================
 	explorerGroup := r.Group("/api/explorer/movies")
 	explorerGroup.Use(middleware.AuthMiddleware()) 
 	{
