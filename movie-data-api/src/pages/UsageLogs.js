@@ -80,7 +80,7 @@ const UsageLogs = () => {
           time:     l.time,
           endpoint: l.endpoint,
           status:   l.status_code,
-          method:   'GET', // backend ยังไม่ส่ง method มา — default ไว้ก่อน
+          method:   'GET',
         }));
 
         setLogs(normalized);
