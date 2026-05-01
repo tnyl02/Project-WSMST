@@ -6,7 +6,6 @@ const KeyItem = ({ keyData, onDelete }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
-  // ปิด menu เมื่อคลิกข้างนอก
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {

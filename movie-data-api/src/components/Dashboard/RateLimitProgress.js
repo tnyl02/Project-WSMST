@@ -21,5 +21,4 @@ const RateLimitProgress = ({ limits }) => {
   );
 };
 
-// *** สำคัญมาก: ต้องมีบรรทัดนี้ด้านล่างสุดของไฟล์ ***
 export default RateLimitProgress;

@@ -15,7 +15,7 @@
   }
 }
 
-/* Card */
+
 .pricing-card {
   background: white;
   border: 1px solid #e0e0e0;
@@ -33,15 +33,13 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
 }
 
-/* Current Plan */
+
 .pricing-card-current {
   border-color: #333;
   border-width: 2px;
 }
 
-/* P
 
-/* Badge */
 .pricing-badge {
   position: absolute;
   top: 16px;
@@ -59,7 +57,7 @@
   padding: 4px 12px;
 }
 
-/* Title */
+
 .pricing-title {
   font-size: 18px;
   font-weight: 600;
@@ -67,7 +65,7 @@
   margin: 0;
 }
 
-/* Price */
+
 .pricing-price {
   display: flex;
   align-items: baseline;
@@ -86,7 +84,7 @@
   font-weight: 500;
 }
 
-/* Features */
+
 .pricing-features {
   display: flex;
   flex-direction: column;
@@ -109,7 +107,7 @@
   color: #111;
 }
 
-/* Button */
+
 .pricing-button {
   width: 100%;
   padding: 12px;
@@ -139,9 +137,6 @@
 }
 
 
-
-
-/* Current Label */
 .current-label {
   text-align: center;
   font-size: 13px;

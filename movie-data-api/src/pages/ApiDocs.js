@@ -1,10 +1,8 @@
-
-// src/pages/ApiDocs.js (ทำแบบเดียวกันกับหน้าอื่นๆ)
 import React, { useState } from "react";
 import '../styles/ApiDocs.css';
 
 
-// ===== Sub Components =====
+
 
 const CodeBlock = ({ code, language = "bash" }) => {
   const [copied, setCopied] = useState(false);
@@ -70,7 +68,6 @@ const Sidebar = () => (
   </aside>
 );
 
-// ===== Code Strings =====
 
 const CODE = {
   curlAuth: [
@@ -233,7 +230,7 @@ const CODE = {
   ].join("\n"),
 };
 
-// ===== Main Component =====
+
 
 export default function ApiDocs() {
   return (

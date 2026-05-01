@@ -13,8 +13,7 @@ const ApiManagementPage = () => {
     'Content-Type': 'application/json',
   });
 
-  // โหลด key จาก backend
-  const fetchKey = async () => {
+    const fetchKey = async () => {
     try {
       setLoading(true);
       const res = await fetch(`/api/key/`, { headers: authHeader() });
@@ -30,8 +29,7 @@ const ApiManagementPage = () => {
 
   useEffect(() => { fetchKey(); }, []);
 
-  // Regenerate key
-  const handleRegenerate = async () => {
+    const handleRegenerate = async () => {
     if (!window.confirm('Create new API Key? The old key will stop working immediately.')) return;
     try {
       const res = await fetch(`/api/key/regenerate`, {
@@ -48,7 +46,7 @@ const ApiManagementPage = () => {
     }
   };
 
-  // Revoke key
+
   const handleRevoke = async () => {
     if (!window.confirm('Revoke this API Key? It will not be able to be used until regenerated.')) return;
     try {
@@ -65,7 +63,7 @@ const ApiManagementPage = () => {
     }
   };
 
-  // Copy key
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(keyData.api_key);

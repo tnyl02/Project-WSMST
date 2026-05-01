@@ -5,9 +5,9 @@ import '../../styles/Sidebar.css';
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const role = localStorage.getItem('role'); // ← ดึง role
+  const role = localStorage.getItem('role'); 
 
-  // เมนูสำหรับ Admin
+  
   const adminMenuGroups = [
     {
       title: 'MAIN',
@@ -25,7 +25,7 @@ const Sidebar = () => {
     }
   ];
 
-  // เมนูสำหรับ User ทั่วไป (เหมือนเดิม)
+  
   const userMenuGroups = [
     {
       title: 'MAIN',
@@ -50,7 +50,7 @@ const Sidebar = () => {
     }
   ];
 
-  // เลือกเมนูตาม role
+ 
   const menuGroups = role === 'admin' ? adminMenuGroups : userMenuGroups;
 
   return (

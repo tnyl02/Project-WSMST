@@ -16,7 +16,6 @@ const MyProfile = () => {
     'Content-Type': 'application/json',
   });
 
-  // โหลดข้อมูล user จาก backend
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -63,7 +62,6 @@ const MyProfile = () => {
       });
       if (!res.ok) throw new Error();
 
-      // อัปเดต UI ทันที
       if (newUsername) setUser(prev => ({ ...prev, username: newUsername }));
       toast.success('Profile updated successfully.');
       setNewUsername('');

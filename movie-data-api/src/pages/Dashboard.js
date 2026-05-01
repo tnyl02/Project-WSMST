@@ -14,7 +14,6 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
 
-  // วันที่จริง ไม่ hardcode
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   });
@@ -83,7 +82,6 @@ const Dashboard = () => {
   {
     label: 'Per month',
     used: monthly_usage,
-    // แก้ไขบรรทัดนี้: ส่ง Infinity ไปตรงๆ เลย
     max: quotaMax, 
   },
 ];

@@ -73,8 +73,8 @@ const mapBackendMovie = (raw) => {
       typeof movie.rating === "number"
         ? movie.rating
         : typeof movie.score === "number"
-        ? movie.score
-        : Number.parseFloat(movie.rating ?? movie.score ?? 0) || 0,
+          ? movie.score
+          : Number.parseFloat(movie.rating ?? movie.score ?? 0) || 0,
     imageUrl: movie.image_url ?? movie.imageUrl ?? "",
     synopsis: movie.description ?? movie.synopsis ?? "No synopsis available.",
   };
@@ -136,7 +136,7 @@ export default function MovieExplorer() {
   const [timeLeftMs, setTimeLeftMs] = useState(() =>
     Math.max(0, getInitialResetAt() - Date.now())
   );
-  // ✅ trigger ให้ fetchMovies ทำงานใหม่หลัง quota reset
+
   const [quotaResetTrigger, setQuotaResetTrigger] = useState(0);
 
   const quotaLimit = PLAN_LIMITS[plan] ?? PLAN_LIMITS.free;
@@ -147,8 +147,7 @@ export default function MovieExplorer() {
   const canFilterByGenre = hasAdvancedTools;
   const showRateLimitPanel = isRateLimited || isMoviesRateLimited;
 
-  // ── helper: sync resetAt จาก 429 response body ───────────────────
-  const syncResetAtFrom429 = (errJson) => {
+    const syncResetAtFrom429 = (errJson) => {
     if (errJson.reset_at) {
       const backendResetAt = new Date(errJson.reset_at).getTime();
       if (Number.isFinite(backendResetAt) && backendResetAt > Date.now()) {
@@ -165,15 +164,13 @@ export default function MovieExplorer() {
       return;
     }
 
-    // fallback: Retry-After header
     const retryAfter = Number(errJson.retry_after ?? 60);
     const newResetAt = Date.now() + retryAfter * 1000;
     setResetAt(newResetAt);
     setTimeLeftMs(retryAfter * 1000);
   };
 
-  // ── Step 1: ดึง API Key ก่อน ──────────────────────────────────────
-  useEffect(() => {
+    useEffect(() => {
     if (!token) {
       setApiKeyLoading(false);
       return;
@@ -205,85 +202,76 @@ export default function MovieExplorer() {
     return () => controller.abort();
   }, [token]);
 
- // ── Step 2: ดึงหนังหลังจากได้ API Key แล้ว ────────────────────────
-useEffect(() => {
-  if (apiKeyLoading) return;
-  if (!token || !apiKey) {
-    setMovies([]);
-    setLoading(false);
-    return;
-  }
-
-  const controller = new AbortController();
-
-  const fetchMovies = async () => {
-    try {
-      setLoading(true);
-      setLoadError("");
-      setIsMoviesRateLimited(false);
-
-      const res = await fetch("/api/movies/", {
-        headers: { "x-api-key": apiKey },
-        signal: controller.signal,
-      });
-
-      // ✅ 429 → แสดง error panel
-      if (res.status === 429) {
-        const errJson = await res.json().catch(() => ({}));
-        setUsedQuota(quotaLimit);
-        syncResetAtFrom429(errJson);
-        setIsMoviesRateLimited(true);
-        return;
-      }else{
-        setUsedQuota(usedQuota);
-        setIsMoviesRateLimited(false);
-      }
-
-
-
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      
-      const json = await res.json();
-
-      // ✅ 200 → sync quota จาก Backend ถ้ามี
-      if (json.quota) {
-        setUsedQuota(json.quota.used ?? 0);
-        if (json.quota.reset_at) {
-          const backendResetAt = new Date(json.quota.reset_at).getTime();
-          if (Number.isFinite(backendResetAt) && backendResetAt > Date.now()) {
-            setResetAt(backendResetAt);
-            setTimeLeftMs(Math.max(0, backendResetAt - Date.now()));
-          }
-        }
-      } else {
-        // ✅ Backend ไม่ส่ง quota มา → นับเองฝั่ง Frontend +1
-        setUsedQuota((prev) => Math.min(prev + 1, quotaLimit));
-      }
-
-      const list = Array.isArray(json)
-        ? json
-        : Array.isArray(json.data)
-        ? json.data
-        : [];
-
-      setMovies(list.map(mapBackendMovie));
-    } catch (err) {
-      if (err.name === "AbortError") return;
-      console.error("fetchMovies error:", err);
-      setMovies([]);
-      setLoadError("Unable to load movies from backend right now.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchMovies();
-  return () => controller.abort();
-}, [token, apiKey, apiKeyLoading, quotaResetTrigger]);
-
-  // ── Timer reset quota ─────────────────────────────────────────────
   useEffect(() => {
+    if (apiKeyLoading) return;
+    if (!token || !apiKey) {
+      setMovies([]);
+      setLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const fetchMovies = async () => {
+      try {
+        setLoading(true);
+        setLoadError("");
+        setIsMoviesRateLimited(false);
+
+        const res = await fetch("/api/movies/", {
+          headers: { "x-api-key": apiKey },
+          signal: controller.signal,
+        });
+
+        if (res.status === 429) {
+          const errJson = await res.json().catch(() => ({}));
+          setUsedQuota(quotaLimit);
+          syncResetAtFrom429(errJson);
+          setIsMoviesRateLimited(true);
+          return;
+        } else {
+          setUsedQuota(usedQuota);
+          setIsMoviesRateLimited(false);
+        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const json = await res.json();
+
+        if (json.quota) {
+          setUsedQuota(json.quota.used ?? 0);
+          if (json.quota.reset_at) {
+            const backendResetAt = new Date(json.quota.reset_at).getTime();
+            if (Number.isFinite(backendResetAt) && backendResetAt > Date.now()) {
+              setResetAt(backendResetAt);
+              setTimeLeftMs(Math.max(0, backendResetAt - Date.now()));
+            }
+          }
+        } else {
+          setUsedQuota((prev) => Math.min(prev + 1, quotaLimit));
+        }
+
+        const list = Array.isArray(json)
+          ? json
+          : Array.isArray(json.data)
+            ? json.data
+            : [];
+
+        setMovies(list.map(mapBackendMovie));
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        console.error("fetchMovies error:", err);
+        setMovies([]);
+        setLoadError("Unable to load movies from backend right now.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMovies();
+    return () => controller.abort();
+  }, [token, apiKey, apiKeyLoading, quotaResetTrigger]);
+
+    useEffect(() => {
     if (plan === "guest") {
       setUsedQuota(0);
       return undefined;
@@ -299,7 +287,7 @@ useEffect(() => {
         setTimeLeftMs(RESET_INTERVAL_MS);
         localStorage.setItem(RESET_AT_STORAGE_KEY, String(nextResetAt));
         localStorage.setItem(USED_QUOTA_STORAGE_KEY, "0");
-        // ✅ trigger fetchMovies ใหม่เพื่อ sync จาก Backend
+
         setQuotaResetTrigger((n) => n + 1);
         return;
       }
@@ -323,8 +311,7 @@ useEffect(() => {
     localStorage.setItem(USED_QUOTA_STORAGE_KEY, String(usedQuota));
   }, [plan, usedQuota]);
 
-  // ── Derived ───────────────────────────────────────────────────────
-  const genres = useMemo(
+    const genres = useMemo(
     () => [
       "all",
       ...Array.from(new Set(movies.flatMap((movie) => movie.genres))),
@@ -339,13 +326,13 @@ useEffect(() => {
       const matchesQuery = !normalizedQuery
         ? true
         : plan === "premium"
-        ? movie.title.toLowerCase().includes(normalizedQuery) ||
+          ? movie.title.toLowerCase().includes(normalizedQuery) ||
           movie.genre.toLowerCase().includes(normalizedQuery) ||
           String(movie.year).includes(normalizedQuery)
-        : hasAdvancedTools
-        ? movie.title.toLowerCase().includes(normalizedQuery) ||
-          movie.genre.toLowerCase().includes(normalizedQuery)
-        : movie.title.toLowerCase().includes(normalizedQuery);
+          : hasAdvancedTools
+            ? movie.title.toLowerCase().includes(normalizedQuery) ||
+            movie.genre.toLowerCase().includes(normalizedQuery)
+            : movie.title.toLowerCase().includes(normalizedQuery);
 
       const matchesGenre =
         !canFilterByGenre || genre === "all" || movie.genres.includes(genre);
@@ -368,8 +355,7 @@ useEffect(() => {
     sort,
   ]);
 
-  // ── Helpers ───────────────────────────────────────────────────────
-  const requestDemo = (callback) => {
+    const requestDemo = (callback) => {
     if (plan === "guest") {
       setShowLoginPrompt(true);
       return;
@@ -379,8 +365,7 @@ useEffect(() => {
     callback();
   };
 
-  // ── เปิดดูรายละเอียด → ยิง /api/movies/:id ────────────────────────
-  const openMovie = (movie) => {
+    const openMovie = (movie) => {
     requestDemo(async () => {
       setMovieDetailError("");
       setMovieDetailLoading(true);
@@ -427,8 +412,7 @@ useEffect(() => {
   const lockedSynopsis =
     "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxx";
 
-  // ── Loading API Key ────────────────────────────────────────────────
-  if (apiKeyLoading) {
+    if (apiKeyLoading) {
     return (
       <main className="movie-explorer">
         <section className="guest-unlock">
@@ -438,8 +422,7 @@ useEffect(() => {
     );
   }
 
-  // ── Render ────────────────────────────────────────────────────────
-  return (
+    return (
     <main className="movie-explorer">
       {!isLoggedIn && (
         <div className="explorer-signup-banner">
@@ -450,9 +433,8 @@ useEffect(() => {
 
       {/* Toolbar */}
       <section
-        className={`explorer-toolbar ${
-          canFilterByGenre ? "" : "explorer-toolbar-simple"
-        }`.trim()}
+        className={`explorer-toolbar ${canFilterByGenre ? "" : "explorer-toolbar-simple"
+          }`.trim()}
         aria-label="Movie filters"
       >
         <input
@@ -463,8 +445,8 @@ useEffect(() => {
             plan === "premium"
               ? "Search by title, genre, year..."
               : hasAdvancedTools
-              ? "Search by title, genre..."
-              : "Search by title..."
+                ? "Search by title, genre..."
+                : "Search by title..."
           }
         />
 
@@ -504,8 +486,7 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* Movie list */}
-      {loading ? (
+        {loading ? (
         <section className="guest-unlock">
           <p>Loading movies...</p>
         </section>
@@ -539,16 +520,15 @@ useEffect(() => {
                 type="button"
               >
                 <div
-                  className={`movie-poster ${
-                    !isLoggedIn && index === 3 ? "poster-locked" : ""
-                  }`}
+                  className={`movie-poster ${!isLoggedIn && index === 3 ? "poster-locked" : ""
+                    }`}
                   style={
                     movie.imageUrl
                       ? {
-                          backgroundImage: `url(${movie.imageUrl})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                        }
+                        backgroundImage: `url(${movie.imageUrl})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }
                       : undefined
                   }
                 />
@@ -585,8 +565,7 @@ useEffect(() => {
         </>
       )}
 
-      {/* Modal รายละเอียดหนัง */}
-      {selectedMovie && (
+        {selectedMovie && (
         <div
           className="modal-backdrop"
           onClick={() => setSelectedMovie(null)}
@@ -660,8 +639,7 @@ useEffect(() => {
         </div>
       )}
 
-      {/* Modal Login Prompt */}
-      {showLoginPrompt && (
+        {showLoginPrompt && (
         <div
           className="modal-backdrop"
           onClick={() => setShowLoginPrompt(false)}

@@ -1,4 +1,3 @@
-// src/data/movies.js
 
 export const INITIAL_MOVIES = [
   { id: 1, title: "City of God",          genre: ["Drama", "Crime"],                    duration: 130, year: 2002, language: "pt", rating: 8.1, image: null, description: "" },

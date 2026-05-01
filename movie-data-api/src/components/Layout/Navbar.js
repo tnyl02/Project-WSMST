@@ -25,7 +25,7 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    localStorage.clear(); // ล้างข้อมูลทั้งหมด
+    localStorage.clear(); 
     setShowDropdown(false);
     navigate('/');
   };
@@ -50,13 +50,13 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
         <div className="auth-section">
           {isLoggedIn ? (
             <div className="profile-container">
-              {/* Badge สถานะ Plan */}
+             
               <div className={`status-badge badge-${currentPlan}`}>
                 {planLabel[currentPlan] || 'free'}
               </div>
 
               <div className="profile-trigger" onClick={() => setShowDropdown(!showDropdown)}>
-                {/* แสดง Initials จริงจาก Username */}
+               
                 <div className="user-avatar">{initials}</div>
                 <span className="user-name">{username} <small>∨</small></span>
               </div>

@@ -1,4 +1,4 @@
-/* ===== Wrapper ===== */
+
 .um-wrapper {
   padding: 32px 40px;
   font-family: inherit;
@@ -6,7 +6,7 @@
   min-height: 100vh;
 }
 
-/* ===== Header ===== */
+
 .um-header {
   display: flex;
   align-items: center;
@@ -23,7 +23,7 @@
   margin: 0;
 }
 
-/* ===== Search ===== */
+
 .um-search-box {
   width: min(360px, 100%);
 }
@@ -45,7 +45,7 @@
   color: #a5a5a5;
 }
 
-/* ===== Table Wrapper ===== */
+
 .um-table-wrapper {
   background: #fff;
   border-radius: 12px;
@@ -54,7 +54,7 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
-/* ===== Table ===== */
+
 .um-table {
   width: 100%;
   border-collapse: collapse;
@@ -101,7 +101,7 @@
   white-space: nowrap;
 }
 
-/* ===== Plan Badge ===== */
+
 .plan-badge {
   display: inline-block;
   padding: 3px 10px;
@@ -125,7 +125,7 @@
   color: #6b7280;
 }
 
-/* ===== Role Badge ===== */
+
 .role-badge {
   display: inline-block;
   padding: 3px 10px;
@@ -144,7 +144,7 @@
   color: #4b5563;
 }
 
-/* ===== Action Buttons ===== */
+
 .action-buttons {
   display: flex;
   align-items: center;
@@ -267,7 +267,7 @@
   text-align: center;
 }
 
-/* ===== Empty ===== */
+
 .um-empty {
   text-align: center;
   color: #9ca3af;

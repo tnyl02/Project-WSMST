@@ -76,8 +76,6 @@ const UsageLogs = () => {
 
         const data = await res.json();
 
-        // backend ส่ง { logs: [{ time, endpoint, status_code }] }
-        // normalize ให้ตรงกับที่ UI ใช้ (status_code → status)
         const normalized = (data.logs || []).map(l => ({
           time:     l.time,
           endpoint: l.endpoint,

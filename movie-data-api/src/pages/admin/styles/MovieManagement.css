@@ -1,4 +1,4 @@
-/* ===== Wrapper ===== */
+
 .ma-wrapper {
   padding: 32px 40px;
   font-family: inherit;
@@ -6,7 +6,6 @@
   min-height: 100vh;
 }
 
-/* ===== Header ===== */
 .ma-header {
   display: flex;
   align-items: center;
@@ -32,7 +31,6 @@
   margin-left: auto;
 }
 
-/* ===== Search ===== */
 .ma-search-box {
   width: 360px;
 }
@@ -74,7 +72,7 @@
   color: #a5a5a5;
 }
 
-/* ===== Table Wrapper ===== */
+
 .ma-table-wrapper {
   background: #fff;
   border-radius: 12px;
@@ -82,7 +80,7 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
-/* ===== Table ===== */
+
 .ma-table {
   width: 100%;
   border-collapse: collapse;
@@ -121,7 +119,7 @@
   vertical-align: top;
 }
 
-/* ===== Columns ===== */
+
 .ma-id {
   color: #6b7280;
   width: 48px;
@@ -139,7 +137,7 @@
   line-height: 1.6;
 }
 
-/* ===== Actions ===== */
+
 .ma-actions {
   display: flex;
   align-items: center;
@@ -188,7 +186,7 @@
   font-size: 0.875rem;
 }
 
-/* ===== Empty ===== */
+
 .ma-empty {
   text-align: center;
   color: #9ca3af;
@@ -217,7 +215,7 @@
   }
 }
 
-/* ===== Modal Backdrop ===== */
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -225,7 +223,7 @@
   z-index: 200;
 }
 
-/* ===== Modal Box ===== */
+
 .modal-box {
   position: fixed;
   top: 50%;
@@ -258,7 +256,7 @@
   margin: 0 0 24px;
 }
 
-/* ===== Modal Fields ===== */
+
 .modal-fields {
   display: flex;
   flex-direction: column;
@@ -294,7 +292,7 @@
   border-color: #7c3aed;
 }
 
-/* ===== Modal Actions ===== */
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;

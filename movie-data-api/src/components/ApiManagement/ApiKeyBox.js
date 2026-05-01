@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
-// ApiKeyBox — widget เล็กสำหรับใช้ใน Dashboard
 const ApiKeyBox = () => {
   const [keyData, setKeyData] = useState(null);
   const [show, setShow]       = useState(false);
@@ -17,7 +16,7 @@ const ApiKeyBox = () => {
         const data = await res.json();
         setKeyData(data);
       } catch {
-        // ไม่แสดง error ใน widget เล็ก — fail silently
+       
         console.error('ApiKeyBox: failed to fetch key');
       }
     };

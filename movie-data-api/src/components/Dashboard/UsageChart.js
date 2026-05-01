@@ -1,6 +1,6 @@
 import React from 'react';
 
-const CHART_HEIGHT = 150; // px ตรงกับ .bars-group height
+const CHART_HEIGHT = 150; 
 
 const UsageChart = ({ chartData = [] }) => {
   const last7Days = Array.from({ length: 7 }, (_, i) => {

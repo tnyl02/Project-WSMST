@@ -1,8 +1,7 @@
-/* ส่วนของรายการ Key */
 .key-card-item {
   background: white;
   border: 1px solid #e0e0e0;
-  border-radius: 16px; /* โค้งมนตามรูป */
+  border-radius: 16px; 
   padding: 24px;
   margin-bottom: 16px;
   display: flex;
@@ -15,14 +14,12 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* การจัดวางปุ่มทางขวา */
 .key-actions-right {
   display: flex;
-  gap: 12px; /* ระยะห่างระหว่างปุ่ม */
+  gap: 12px; 
   align-items: center;
 }
 
-/* ปุ่ม Create Key ด้านบน (สีเทาตามรูป) */
 .btn-create-key {
   background-color: #efefef;
   color: #333;
@@ -41,7 +38,6 @@
   background-color: #e5e5e5;
 }
 
-/* ปุ่ม outline ทุกปุ่มในหน้านี้ใช้สีเดียวกัน */
 .btn-outline {
   padding: 8px 16px;
   border: 1px solid #e0e0e0;
@@ -60,7 +56,6 @@
   color: #111;
 }
 
-/* Header ของหน้า */
 .api-management-container {
   padding: 32px;
   max-width: 860px;
@@ -81,7 +76,6 @@
   color: #111;
 }
 
-/* Empty State */
 .empty-state {
   text-align: center;
   padding: 64px 24px;
@@ -108,7 +102,6 @@
   margin-bottom: 20px;
 }
 
-/* ข้อมูล Key ทางซ้าย */
 .key-info-left {
   display: flex;
   flex-direction: column;
@@ -135,7 +128,6 @@
   color: #aaa;
 }
 
-/* ปุ่ม Primary (Create Key) */
 .btn-primary {
   background-color: #111;
   color: white;

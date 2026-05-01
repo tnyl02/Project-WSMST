@@ -1,4 +1,3 @@
-/* AdminDashboard.css */
 .adm-page { padding: 24px; font-family: 'Syne', sans-serif; }
 
 .adm-section-label {
@@ -6,7 +5,6 @@
   text-transform: uppercase; color: #888; margin-bottom: 14px;
 }
 
-/* Stat Cards */
 .adm-stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
 .adm-stat-card { background: #fff; border: 0.5px solid #e5e5e5; border-radius: 12px; padding: 20px; position: relative; overflow: hidden; }
 .adm-stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
@@ -17,13 +15,11 @@
 .adm-stat-num { font-family: 'DM Mono', monospace; font-size: 32px; font-weight: 500; color: #111; line-height: 1; }
 .adm-stat-sub { font-size: 12px; color: #aaa; margin-top: 6px; }
 
-/* Panels */
 .adm-panels { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
 .adm-panel { background: #fff; border: 0.5px solid #e5e5e5; border-radius: 12px; padding: 20px; }
 .adm-panel-wide { min-height: 240px; text-align: center; }
 .adm-panel-full { border-radius: 12px; border: 0.5px solid #e5e5e5; padding: 20px; background: #fff; margin-top: 16px; }
 
-/* Table */
 .adm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .adm-table thead th { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: #aaa; padding: 0 0 10px; text-align: left; border-bottom: 0.5px solid #eee; }
 .adm-table tbody tr { border-bottom: 0.5px solid #f0f0f0; }
@@ -33,7 +29,6 @@
 .adm-table td.adm-mono { font-family: 'DM Mono', monospace; font-size: 11px; color: #666; }
 .adm-table td.adm-right { text-align: right; }
 
-/* Badges */
 .adm-badge { display: inline-block; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
 .adm-badge-active   { background: #EAF3DE; color: #3B6D11; }
 .adm-badge-limit    { background: #FAECE7; color: #993C1D; }
@@ -43,7 +38,6 @@
 .adm-badge-admin    { background: #EEE8FF; color: #6D28D9; }
 .adm-badge-user     { background: #E7F8F1; color: #0F766E; }
 
-/* Charts */
 .adm-chart-wrap { position: relative; width: 100%; height: 200px; margin-top: 16px; }
 .adm-donut-wrap { display: flex; align-items: center; justify-content: center; gap: 36px; margin-top: 16px; }
 .adm-legend-list { display: flex; flex-direction: column; gap: 10px; flex: 0 1 320px; text-align: left; }

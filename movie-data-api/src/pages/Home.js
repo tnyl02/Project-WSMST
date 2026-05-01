@@ -4,7 +4,6 @@ import { pricingPlans } from '../data/plans';
 import '../styles/Home.css';
 import '../styles/Subscription.css';
 
-// Icons
 const DatabaseIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <ellipse cx="12" cy="5" rx="9" ry="3" />

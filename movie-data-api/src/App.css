@@ -36,7 +36,7 @@
     transform: rotate(360deg);
   }
 }
-/* src/App.css */
+
 .app-container {
   display: flex;
   flex-direction: column;
@@ -44,8 +44,8 @@
 }
 
 .main-layout {
-  display: flex; /* ทำให้ Sidebar กับ Content เรียงซ้ายขวา */
-  flex: 1;       /* ยืดความสูงให้เต็มที่ที่เหลือจาก Navbar */
+  display: flex;
+  flex: 1;      
   align-items: flex-start;
   background-color: #fefefe;
 }
@@ -59,13 +59,11 @@
 
 }
 
-/* Home page ไม่มี padding และ background ขาว */
 .content-area.home-page {
   padding: 0;
   background-color: #ffffff;
 }
 
-/* ApiDocs page — ไม่มี padding และ background ขาว เพื่อให้ sidebar ติดขอบ */
 .content-area.docs-page {
   padding: 0;
   background-color: #ffffff;

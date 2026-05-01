@@ -86,18 +86,18 @@ const Login = ({ setIsLoggedIn }) => {
             {/* สร้าง wrapper เพื่อคุมตำแหน่ง */}
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <input
-                type={showPassword ? "text" : "password"} // เปลี่ยนตรงนี้
+                type={showPassword ? "text" : "password"} 
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
                 required
-                style={{ width: '100%', paddingRight: '45px' }} // เว้นที่ด้านขวาให้ปุ่ม
+                style={{ width: '100%', paddingRight: '45px' }} 
               />
 
-              {/* วางปุ่มไอคอนไว้ในกล่อง */}
+             
               <button
-                type="button" // สำคัญมาก: ต้องระบุว่าเป็น button ไม่ให้มันไป submit form
+                type="button" 
                 onClick={() => setShowPassword(!showPassword)}
                 style={{
                   position: 'absolute',
